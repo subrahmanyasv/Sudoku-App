@@ -27,12 +27,12 @@ cd Sudoku-App
 3. Configure the Upstream Remote
    To keep your fork in sync with the main repository, you need to add it as a new remote, conventionally named upstream.
 
-## Add the original repository as the 'upstream' remote
+### Add the original repository as the 'upstream' remote
 git remote add upstream [https://github.com/subrahmanyasv/Sudoku-App.git](https://github.com/subrahmanyasv/Sudoku-App.git)
 
-## Verify that the remotes are set up correctly
+### Verify that the remotes are set up correctly
 git remote -v
-## You should see 'origin' (your fork) and 'upstream' (the main repo)
+### You should see 'origin' (your fork) and 'upstream' (the main repo)
 
 4. Open and Build the Project in Android Studio
    Now you can open the project and ensure it builds correctly.
@@ -65,13 +65,13 @@ Once your changes are complete, run the app on an emulator or a physical device 
 7. Commit and Push Your Changes
    When you are ready, commit your changes with a clear and descriptive message.
 
-## Stage your changes
+### Stage your changes
 git add .
 
-## Commit your changes
+### Commit your changes
 git commit -m "feat: Implement a new dark theme"
 
-## Push the branch to your forked repository ('origin')
+### Push the branch to your forked repository ('origin')
 git push origin your-branch-name
 
 8. Submit a Pull Request
