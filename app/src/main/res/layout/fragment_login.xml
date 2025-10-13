@@ -23,15 +23,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="The ultimate puzzle battlefield"
-        android:textColor="#A0AEC0"
+        android:textColor="#94A3B8"
         android:textSize="16sp"
         android:layout_marginBottom="48dp"/>
 
     <EditText
+        android:id="@+id/email_input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Email"
-        android:textColorHint="#A0AEC0"
+        android:textColorHint="#94A3B8"
         android:textColor="#FFFFFF"
         android:background="@drawable/edit_text_background"
         android:padding="16dp"
@@ -39,10 +40,11 @@
         android:layout_marginBottom="16dp"/>
 
     <EditText
+        android:id="@+id/password_input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Password"
-        android:textColorHint="#A0AEC0"
+        android:textColorHint="#94A3B8"
         android:textColor="#FFFFFF"
         android:background="@drawable/edit_text_background"
         android:padding="16dp"
@@ -50,11 +52,12 @@
         android:layout_marginBottom="24dp"/>
 
     <Button
+        android:id="@+id/login_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Login"
         android:background="@drawable/button_background"
-        android:textColor="#10141f"
+        android:textColor="#0F172A"
         android:textStyle="bold"
         android:padding="16dp"
         android:layout_marginBottom="24dp"/>
@@ -64,7 +67,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="New challenger? Register here"
-        android:textColor="#A0AEC0"
+        android:textColor="#94A3B8"
         android:clickable="true"
         android:focusable="true" />
 
