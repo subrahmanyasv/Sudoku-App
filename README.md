@@ -95,3 +95,5 @@ Navigate to Build, Execution, Deployment > Build Tools > Gradle.
 Under Gradle JDK, select the option that includes jbr or Embedded JDK.
 
 Click OK and sync the project again.
+
+Ananaya added as collaborator

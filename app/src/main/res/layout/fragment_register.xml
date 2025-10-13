@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="#0F131E"
+    tools:context=".RegisterFragment">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/register_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sudoku Arena"
+        android:textColor="#FFFFFF"
+        android:textSize="48sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Subtitle -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="The ultimate puzzle battlefield"
+        android:textColor="#94A3B8"
+        android:textSize="16sp"
+        android:layout_marginBottom="48dp" />
+
+    <!-- Username -->
+    <EditText
+        android:id="@+id/username_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Username"
+        android:textColorHint="#94A3B8"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/edit_text_background"
+        android:padding="16dp"
+        android:inputType="text"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Email -->
+    <EditText
+        android:id="@+id/email_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Email"
+        android:textColorHint="#94A3B8"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/edit_text_background"
+        android:padding="16dp"
+        android:inputType="textEmailAddress"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Password -->
+    <EditText
+        android:id="@+id/password_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Password"
+        android:textColorHint="#94A3B8"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/edit_text_background"
+        android:padding="16dp"
+        android:inputType="textPassword"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Confirm Password -->
+    <EditText
+        android:id="@+id/confirm_password_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Confirm Password"
+        android:textColorHint="#94A3B8"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/edit_text_background"
+        android:padding="16dp"
+        android:inputType="textPassword"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Create Account Button -->
+    <Button
+        android:id="@+id/create_account_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create Account"
+        android:textColor="#0F172A"
+        android:textStyle="bold"
+        android:background="@drawable/button_background"
+        android:padding="16dp"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Login Link -->
+    <TextView
+        android:id="@+id/show_login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Already have an account? Login"
+        android:textColor="#94A3B8"
+        android:clickable="true"
+        android:focusable="true" />
+
+</LinearLayout>
+

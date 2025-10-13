@@ -1,5 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="background_dark">#0A1A2F</color>
+    <color name="card_dark">#13263F</color>
+
+    <color name="gradient_start">#00F5A0</color>
+    <color name="gradient_end">#FF1CF7</color>
+
+    <color name="button_start">#00FFA3</color>
+    <color name="button_end">#00B8D4</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="gray_text">#A0AABF</color>
 </resources>
