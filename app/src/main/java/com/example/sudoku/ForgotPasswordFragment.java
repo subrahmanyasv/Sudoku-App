@@ -12,11 +12,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class LoginFragment extends Fragment {
+public class ForgotPasswordFragment extends Fragment {
 
-    public LoginFragment() {
+    public ForgotPasswordFragment() {
         // Required empty public constructor
     }
 
@@ -24,59 +26,62 @@ public class LoginFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_login, container, false);
+        return inflater.inflate(R.layout.fragment_forgot_password, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        TextView showRegister = view.findViewById(R.id.show_register);
-        TextView forgotPassword = view.findViewById(R.id.forgot_password);
-        TextView loginTitle = view.findViewById(R.id.login_title);
+        // Find all UI elements
+        Button sendOtpButton = view.findViewById(R.id.send_otp_button);
+        Button verifyButton = view.findViewById(R.id.verify_button);
+        TextView resendOtp = view.findViewById(R.id.resend_otp);
+        TextView backToLogin = view.findViewById(R.id.back_to_login);
+        TextView title = view.findViewById(R.id.forgot_password_title);
 
-        // ✅ Apply gradient safely after layout
-        loginTitle.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        // Safely apply gradient to title
+        title.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                loginTitle.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                applyGradientToText(loginTitle);
+                title.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                applyGradientToText(title);
             }
         });
 
-        // ✅ Handle navigation to RegisterFragment
-        showRegister.setOnClickListener(v -> {
+        // Set click listeners
+        sendOtpButton.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "OTP sent to your email!", Toast.LENGTH_SHORT).show();
+        });
+
+        verifyButton.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Verification logic goes here.", Toast.LENGTH_SHORT).show();
+        });
+
+        backToLogin.setOnClickListener(v -> {
             getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new RegisterFragment())
-                    .addToBackStack(null)
+                    .replace(R.id.fragment_container, new LoginFragment())
                     .commit();
         });
 
-        // ✅ Handle navigation to ForgotPasswordFragment
-        forgotPassword.setOnClickListener(v -> {
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new ForgotPasswordFragment())
-                    .addToBackStack(null)
-                    .commit();
-        });
-
-        // ✅ Safer way to color "Register here"
-        String text = "New challenger? Register here";
+        // Style the "Resend OTP" part of the text
+        String text = "Didn't receive code? Resend OTP";
         SpannableString spannableString = new SpannableString(text);
-
-        int start = text.indexOf("Register here");
-        int end = start + "Register here".length();
-
-        if (start >= 0 && end <= text.length()) {
+        int start = text.indexOf("Resend OTP");
+        if (start != -1) {
+            int end = start + "Resend OTP".length();
             ForegroundColorSpan fcs = new ForegroundColorSpan(Color.parseColor("#00FFD1"));
             spannableString.setSpan(fcs, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
+        resendOtp.setText(spannableString);
 
-        showRegister.setText(spannableString);
+        resendOtp.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "OTP resent!", Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void applyGradientToText(TextView textView) {
-        if (textView.getWidth() == 0) return; // Avoid crash if view not measured yet
+        if (textView.getWidth() == 0) return;
         android.text.TextPaint paint = textView.getPaint();
         float width = paint.measureText(textView.getText().toString());
 
@@ -89,7 +94,7 @@ public class LoginFragment extends Fragment {
                 null,
                 android.graphics.Shader.TileMode.CLAMP
         );
-
         textView.getPaint().setShader(textShader);
     }
 }
+
