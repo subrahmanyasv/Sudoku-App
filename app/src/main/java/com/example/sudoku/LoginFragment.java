@@ -1,5 +1,6 @@
 package com.example.sudoku;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -12,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.TextView;
 
 public class LoginFragment extends Fragment {
@@ -34,6 +36,7 @@ public class LoginFragment extends Fragment {
         TextView showRegister = view.findViewById(R.id.show_register);
         TextView forgotPassword = view.findViewById(R.id.forgot_password);
         TextView loginTitle = view.findViewById(R.id.login_title);
+        Button loginButton = view.findViewById(R.id.login_button); // Get the button
 
         // ✅ Apply gradient safely after layout
         loginTitle.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -58,6 +61,19 @@ public class LoginFragment extends Fragment {
                     .replace(R.id.fragment_container, new ForgotPasswordFragment())
                     .addToBackStack(null)
                     .commit();
+        });
+
+        // ✅ --- Handle Login Navigation ---
+        loginButton.setOnClickListener(v -> {
+            // TODO: Add your actual login validation logic here (e.g., check email/password)
+
+            // If login is successful:
+            Intent intent = new Intent(getActivity(), HomeActivity.class);
+            startActivity(intent);
+            // Finish MainActivity so the user cannot go back to the login screen
+            if (getActivity() != null) {
+                getActivity().finish();
+            }
         });
 
         // ✅ Safer way to color "Register here"
@@ -93,3 +109,4 @@ public class LoginFragment extends Fragment {
         textView.getPaint().setShader(textShader);
     }
 }
+
