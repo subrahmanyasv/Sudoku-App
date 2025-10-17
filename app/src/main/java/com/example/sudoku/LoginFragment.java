@@ -36,9 +36,9 @@ public class LoginFragment extends Fragment {
         TextView showRegister = view.findViewById(R.id.show_register);
         TextView forgotPassword = view.findViewById(R.id.forgot_password);
         TextView loginTitle = view.findViewById(R.id.login_title);
-        Button loginButton = view.findViewById(R.id.login_button); // Get the button
+        Button loginButton = view.findViewById(R.id.login_button);
 
-        // ✅ Apply gradient safely after layout
+        // Apply gradient safely after layout
         loginTitle.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -47,7 +47,7 @@ public class LoginFragment extends Fragment {
             }
         });
 
-        // ✅ Handle navigation to RegisterFragment
+        // Handle navigation to RegisterFragment
         showRegister.setOnClickListener(v -> {
             getParentFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new RegisterFragment())
@@ -55,7 +55,7 @@ public class LoginFragment extends Fragment {
                     .commit();
         });
 
-        // ✅ Handle navigation to ForgotPasswordFragment
+        // Handle navigation to ForgotPasswordFragment
         forgotPassword.setOnClickListener(v -> {
             getParentFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new ForgotPasswordFragment())
@@ -63,27 +63,22 @@ public class LoginFragment extends Fragment {
                     .commit();
         });
 
-        // ✅ --- Handle Login Navigation ---
+        // Handle login button click
         loginButton.setOnClickListener(v -> {
-            // TODO: Add your actual login validation logic here (e.g., check email/password)
-
-            // If login is successful:
+            // TODO: Add actual login validation here
             Intent intent = new Intent(getActivity(), HomeActivity.class);
             startActivity(intent);
-            // Finish MainActivity so the user cannot go back to the login screen
-            if (getActivity() != null) {
-                getActivity().finish();
-            }
+            getActivity().finish(); // Finish MainActivity so user can't go back to it
         });
 
-        // ✅ Safer way to color "Register here"
+        // Safer way to color "Register here"
         String text = "New challenger? Register here";
         SpannableString spannableString = new SpannableString(text);
+        String targetText = "Register here";
+        int start = text.indexOf(targetText);
+        int end = start + targetText.length();
 
-        int start = text.indexOf("Register here");
-        int end = start + "Register here".length();
-
-        if (start >= 0 && end <= text.length()) {
+        if (start != -1) { // Check if the target text was found
             ForegroundColorSpan fcs = new ForegroundColorSpan(Color.parseColor("#00FFD1"));
             spannableString.setSpan(fcs, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }

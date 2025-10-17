@@ -7,6 +7,7 @@
     android:background="#0F131E"
     tools:context=".HomeActivity">
 
+    <!-- Main Content Area -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -39,6 +40,7 @@
                         android:textSize="16sp" />
 
                     <TextView
+                        android:id="@+id/username_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Gamer2025"
@@ -61,13 +63,13 @@
                     android:textStyle="bold" />
             </RelativeLayout>
 
-            <!-- Continue Last Game Card -->
+            <!-- Continue Last Game -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/card_background"
                 android:padding="20dp"
-                android:layout_marginBottom="24dp">
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -93,13 +95,12 @@
                 </LinearLayout>
 
                 <View
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
                     android:background="@drawable/play_icon_background"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"/>
             </RelativeLayout>
-
 
             <!-- New Game Button -->
             <Button
@@ -107,12 +108,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="New Game"
-                android:textColor="#10141F"
-                android:textStyle="bold"
                 android:background="@drawable/button_background"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                android:layout_marginBottom="32dp" />
+                android:textColor="#0F172A"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="32dp"/>
 
             <!-- Daily Quests Title -->
             <TextView
@@ -124,58 +126,15 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="16dp"/>
 
-            <!-- Quest 1 -->
+            <!-- This is the container where quests will be added dynamically -->
             <LinearLayout
+                android:id="@+id/quests_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/card_background"
-                android:padding="20dp"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Speed Runner"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Complete a Medium puzzle in under 10 mins"
-                    android:textColor="#94A3B8"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <!-- Quest 2 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/card_background"
-                android:alpha="0.6"
-                android:padding="20dp"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Flawless Victory"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Win a puzzle with 0 errors (Completed)"
-                    android:textColor="#94A3B8"
-                    android:textSize="14sp" />
-            </LinearLayout>
+                android:orientation="vertical" />
 
         </LinearLayout>
+
     </ScrollView>
 
     <!-- Bottom Navigation -->
@@ -184,9 +143,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="#1A202C"
+        android:background="#0F131E"
         app:itemIconTint="@color/bottom_nav_color"
         app:itemTextColor="@color/bottom_nav_color"
-        app:menu="@menu/bottom_nav_menu" />
+        app:menu="@menu/bottom_nav_menu"
+        app:labelVisibilityMode="labeled"/>
 
 </RelativeLayout>
+

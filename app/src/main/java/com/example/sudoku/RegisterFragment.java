@@ -34,7 +34,7 @@ public class RegisterFragment extends Fragment {
         TextView showLogin = view.findViewById(R.id.show_login);
         TextView registerTitle = view.findViewById(R.id.register_title);
 
-        // Safely apply the gradient after the view is laid out
+        // Apply gradient safely after layout
         registerTitle.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -43,41 +43,40 @@ public class RegisterFragment extends Fragment {
             }
         });
 
-
+        // Handle navigation back to LoginFragment
         showLogin.setOnClickListener(v -> {
-            // Use getParentFragmentManager for fragment-to-fragment transactions
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new LoginFragment())
-                    .commit();
+            // This will take the user back to the previous screen (LoginFragment)
+            getParentFragmentManager().popBackStack();
         });
 
-
-        // A safer way to color the "Login" part of the text
+        // Safer way to color the "Login" link
         String text = "Already have an account? Login";
         SpannableString spannableString = new SpannableString(text);
+        String targetText = "Login";
+        int start = text.indexOf(targetText);
+        int end = start + targetText.length();
 
-        int start = text.indexOf("Login");
-        int end = start + "Login".length();
-
-        // Check that the word was actually found before applying the color
-        if (start != -1) {
+        if (start != -1) { // Check if the target text was found
             ForegroundColorSpan fcs = new ForegroundColorSpan(Color.parseColor("#00FFD1"));
             spannableString.setSpan(fcs, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-
         showLogin.setText(spannableString);
     }
 
     private void applyGradientToText(TextView textView) {
-        if (textView.getWidth() == 0) return; // Avoid issues if view not measured
+        if (textView.getWidth() == 0) return; // Avoid crash if view not measured yet
         android.text.TextPaint paint = textView.getPaint();
         float width = paint.measureText(textView.getText().toString());
 
-        android.graphics.Shader textShader = new android.graphics.LinearGradient(0, 0, width, textView.getTextSize(),
+        android.graphics.Shader textShader = new android.graphics.LinearGradient(
+                0, 0, width, textView.getTextSize(),
                 new int[]{
                         Color.parseColor("#38B2AC"), // Teal
                         Color.parseColor("#D53F8C")  // Pink
-                }, null, android.graphics.Shader.TileMode.CLAMP);
+                },
+                null,
+                android.graphics.Shader.TileMode.CLAMP
+        );
         textView.getPaint().setShader(textShader);
     }
 }
