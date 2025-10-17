@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0F131E"
+    android:padding="16dp"
+    tools:context=".LeaderboardActivity">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/leaderboard_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Leaderboard"
+        android:textColor="@android:color/white"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp"/>
+
+    <!-- Tab Buttons -->
+    <LinearLayout
+        android:id="@+id/tab_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@id/leaderboard_title"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/card_background"
+        android:padding="4dp">
+
+        <Button
+            android:id="@+id/daily_button"
+            style="@style/LeaderboardTab.Selected"
+            android:text="Daily" />
+
+        <Button
+            android:id="@+id/weekly_button"
+            style="@style/LeaderboardTab.Unselected"
+            android:text="Weekly" />
+
+        <Button
+            android:id="@+id/all_time_button"
+            style="@style/LeaderboardTab.Unselected"
+            android:text="All-Time" />
+    </LinearLayout>
+
+    <!-- RecyclerView for the list -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/leaderboard_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tab_layout"
+        tools:listitem="@layout/list_item_leaderboard"/>
+
+</RelativeLayout>
+
