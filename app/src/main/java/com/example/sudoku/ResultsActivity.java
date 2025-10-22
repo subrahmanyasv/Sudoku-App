@@ -75,7 +75,7 @@ public class ResultsActivity extends AppCompatActivity {
 
                 // Launch the dedicated in-app friend selection screen (ChallengeSelectActivity)
                 // You MUST have a ChallengeSelectActivity class defined for this to work.
-                Intent challengeIntent = new Intent(ResultsActivity.this, ChallengeSelectActivity.class);
+                Intent challengeIntent = new Intent(ResultsActivity.this, ChallengeActivity.class);
                 challengeIntent.putExtra("CHALLENGE_TIME", finalTime);
                 challengeIntent.putExtra("CHALLENGE_SCORE", finalScore);
                 startActivity(challengeIntent);
