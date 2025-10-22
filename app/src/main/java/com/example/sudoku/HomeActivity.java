@@ -94,6 +94,41 @@ public class HomeActivity extends AppCompatActivity {
 
             // Add the new quest card to the container
             questsContainer.addView(questView);
+            // Setup Bottom Navigation
+            BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+            bottomNavigationView.setSelectedItemId(R.id.navigation_home);
+            bottomNavigationView.setOnItemSelectedListener(item -> {
+                int itemId = item.getItemId();
+
+                // 1. Home Screen (Current Screen)
+                if (itemId == R.id.navigation_home) {
+                    // Already on Home screen
+                    return true;
+
+                    // 2. Ranks Screen (LeaderboardActivity)
+                } else if (itemId == R.id.navigation_ranks) {
+                    Intent ranksIntent = new Intent(HomeActivity.this, LeaderboardActivity.class);
+                    ranksIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                    startActivity(ranksIntent);
+                    return true;
+
+                    // 3. Challenges Screen (ChallengeActivity)
+                } else if (itemId == R.id.navigation_challenges) {
+                    Intent challengesIntent = new Intent(HomeActivity.this, ChallengeActivity.class);
+                    challengesIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                    startActivity(challengesIntent);
+                    return true;
+
+                    // 4. Profile Screen (ProfileActivity)
+                } else if (itemId == R.id.navigation_profile) {
+                    Intent profileIntent = new Intent(HomeActivity.this, ProfileActivity.class);
+                    profileIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                    startActivity(profileIntent);
+                    return true;
+                }
+
+                return false;
+            });
         }
     }
 }

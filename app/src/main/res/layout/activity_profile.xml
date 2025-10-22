@@ -40,9 +40,9 @@
                     android:id="@+id/profile_image"
                     android:layout_width="80dp"
                     android:layout_height="80dp"
-                    android:src="@drawable/ic_profile_g_placeholder"
+
                     android:background="@drawable/circle_border_blue"
-                    android:contentDescription="@string/profile_picture_desc"
+
                     android:padding="8dp"/>
 
                 <TextView
@@ -161,8 +161,10 @@
                         android:text="Veteran"
                         style="@style/AchievementTextStyle" />
                 </LinearLayout>
+
             </GridLayout>
         </LinearLayout>
+
     </ScrollView>
 
     <LinearLayout
