@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- This domain is for connecting to localhost via the Android emulator -->
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- Add your production domain here when you deploy -->
+        <!-- <domain includeSubdomains="true">your.api.domain.com</domain> -->
+    </domain-config>
+</network-security-config>
+
