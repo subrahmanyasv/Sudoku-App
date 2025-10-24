@@ -1,3 +1,4 @@
+// Relative Path: Sudoku-App/app/src/main/java/com/example/sudoku/ChallengeActivity.java
 package com.example.sudoku;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -5,10 +6,13 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView; // Import this
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +44,9 @@ public class ChallengeActivity extends AppCompatActivity {
 
         // Initial load: show Incoming challenges
         showIncomingChallenges();
+
+        // --- ADDED NAVIGATION LOGIC ---
+        setupBottomNavigation();
     }
 
     private void setupMockData() {
@@ -95,6 +102,48 @@ public class ChallengeActivity extends AppCompatActivity {
         // Update the button text to show the count
         selected.setText(String.format(Locale.getDefault(), "%s (%d)",
                 selected.getId() == R.id.incoming_button ? "Incoming" : "Outgoing", count));
-        unselected.setText(unselected.getId() == R.id.incoming_button ? "Incoming (2)" : "Outgoing (1)"); // Use hardcoded mock count for the unselected one to match the image
+
+        // Update the unselected button's text (using mock data count for simplicity)
+        if (selected.getId() == R.id.incoming_button) {
+            outgoingButton.setText("Outgoing (1)");
+        } else {
+            incomingButton.setText("Incoming (2)");
+        }
+    }
+
+    // --- ADDED onResume ---
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Ensure the "Challenges" item is selected when returning to this activity
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.navigation_challenges);
+    }
+
+    // --- ADDED setupBottomNavigation ---
+    private void setupBottomNavigation() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            Intent intent = null;
+
+            if (itemId == R.id.navigation_home) {
+                intent = new Intent(ChallengeActivity.this, HomeActivity.class);
+            } else if (itemId == R.id.navigation_ranks) {
+                intent = new Intent(ChallengeActivity.this, LeaderboardActivity.class);
+            } else if (itemId == R.id.navigation_challenges) {
+                return true; // Already on this screen, do nothing
+            } else if (itemId == R.id.navigation_profile) {
+                intent = new Intent(ChallengeActivity.this, ProfileActivity.class);
+            }
+
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
+                return true;
+            }
+            return false;
+        });
     }
 }
+

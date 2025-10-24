@@ -21,7 +21,51 @@
 
     <color name="dark_background">#101827</color>
     <color name="nav_background">#182234</color>
-    <color name="accent_blue">#00BCD4</color>
     <color name="text_secondary">#9E9E9E</color>
+    <color name="accent_blue">#00BCD4</color>
+    <color name="accent_green">#22C55E</color>
+    <color name="accent_orange">#F97316</color>
+    <color name="accent_red">#EF4444</color>
     <color name="achievement_locked">#334057</color>
+    <color name="bottom_nav_color">#94A3B8</color>
+    <color name="bottom_nav_selected_color">@color/accent_blue</color>
+
+    <string-array name="profile_avatar_colors">
+        <item>#EF4444</item> <!-- Red -->
+        <item>#F97316</item> <!-- Orange -->
+        <item>#EAB308</item> <!-- Yellow -->
+        <item>#22C55E</item> <!-- Green -->
+        <item>#14B8A6</item> <!-- Teal -->
+        <item>#06B6D4</item> <!-- Cyan -->
+        <item>#3B82F6</item> <!-- Blue -->
+        <item>#8B5CF6</item> <!-- Violet -->
+        <item>#EC4899</item> <!-- Pink -->
+        <item>#D946EF</item> <!-- Fuchsia -->
+    </string-array>
+
+    <!-- NEW: Color for the ripple effect in the bottom navigation -->
+    <color name="accent_blue_transparent">#333B82F6</color>
+    <!-- 20% opacity of accent_blue --><!-- NEW: Colors for the dynamic profile picture background -->
+    <color name="profile_color_1">#4CAF50</color> <!-- Green -->
+    <color name="profile_color_2">#2196F3</color> <!-- Blue -->
+    <color name="profile_color_3">#FFC107</color> <!-- Amber -->
+    <color name="profile_color_4">#E91E63</color> <!-- Pink -->
+    <color name="profile_color_5">#9C27B0</color> <!-- Purple -->
+    <color name="profile_color_6">#00BCD4</color> <!-- Cyan -->
+    <color name="profile_color_7">#FF9800</color> <!-- Orange -->
+    <color name="profile_color_8">#673AB7</color> <!-- Deep Purple -->
+    <color name="profile_color_9">#CDDC39</color> <!-- Lime -->
+    <color name="profile_color_10">#FF5722</color> <!-- Deep Orange -->
+    <array name="profile_colors_array">
+        <item>@color/profile_color_1</item>
+        <item>@color/profile_color_2</item>
+        <item>@color/profile_color_3</item>
+        <item>@color/profile_color_4</item>
+        <item>@color/profile_color_5</item>
+        <item>@color/profile_color_6</item>
+        <item>@color/profile_color_7</item>
+        <item>@color/profile_color_8</item>
+        <item>@color/profile_color_9</item>
+        <item>@color/profile_color_10</item>
+    </array>
 </resources>

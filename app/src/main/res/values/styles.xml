@@ -48,5 +48,34 @@
         <item name="android:textAllCaps">false</item>
     </style>
 
+    <!-- ### ADD THESE STYLES FOR PROFILE STATS ### -->
+    <!-- Style for the main stat card (e.g., Games Played) -->
+    <style name="ProfileStatCard">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@drawable/card_background</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">20dp</item>
+    </style>
+
+    <!-- Style for the stat card label (e.g., "Games Played") -->
+    <style name="ProfileStatLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#94A3B8</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Style for the stat card value (e.g., "128") -->
+    <style name="ProfileStatValue">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <!-- ############################################ -->
+
 </resources>
 

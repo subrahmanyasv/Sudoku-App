@@ -1,3 +1,4 @@
+// Relative Path: Sudoku-App/app/src/main/java/com/example/sudoku/LeaderboardActivity.java
 package com.example.sudoku;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -5,8 +6,10 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent; // Import this
 import android.os.Bundle;
 import android.widget.Button;
+import com.google.android.material.bottomnavigation.BottomNavigationView; // Import this
 
 import java.util.List;
 
@@ -50,6 +53,9 @@ public class LeaderboardActivity extends AppCompatActivity {
             adapter.updateData(entries);
             updateButtonStyles(allTimeButton);
         });
+
+        // --- ADDED NAVIGATION LOGIC ---
+        setupBottomNavigation();
     }
 
     private void updateButtonStyles(Button selectedButton) {
@@ -65,6 +71,41 @@ public class LeaderboardActivity extends AppCompatActivity {
                 button.setTextColor(ContextCompat.getColor(this, R.color.white));
             }
         }
+    }
+
+    // --- ADDED onResume ---
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Ensure the "Ranks" item is selected when returning to this activity
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.navigation_ranks);
+    }
+
+    // --- ADDED setupBottomNavigation ---
+    private void setupBottomNavigation() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            Intent intent = null;
+
+            if (itemId == R.id.navigation_home) {
+                intent = new Intent(LeaderboardActivity.this, HomeActivity.class);
+            } else if (itemId == R.id.navigation_ranks) {
+                return true; // Already on this screen, do nothing
+            } else if (itemId == R.id.navigation_challenges) {
+                intent = new Intent(LeaderboardActivity.this, ChallengeActivity.class);
+            } else if (itemId == R.id.navigation_profile) {
+                intent = new Intent(LeaderboardActivity.this, ProfileActivity.class); // Fixed typo here
+            }
+
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
+                return true;
+            }
+            return false;
+        });
     }
 }
 

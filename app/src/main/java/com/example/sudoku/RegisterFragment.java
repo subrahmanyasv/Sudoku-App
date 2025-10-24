@@ -57,7 +57,8 @@ public class RegisterFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Initialize SessionManager
-        sessionManager = new SessionManager(getContext());
+        // Use requireContext() for safer context handling in fragments
+        sessionManager = new SessionManager(requireContext());
 
         // Find UI elements
         usernameInput = view.findViewById(R.id.username_input);
@@ -72,15 +73,20 @@ public class RegisterFragment extends Fragment {
         registerTitle.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                registerTitle.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                applyGradientToText(registerTitle);
+                // Add a check to ensure the view observer is alive
+                if (registerTitle.getViewTreeObserver().isAlive()) {
+                    registerTitle.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    applyGradientToText(registerTitle);
+                }
             }
         });
 
         // Handle navigation back to LoginFragment
         showLogin.setOnClickListener(v -> {
             // This will take the user back to the previous screen (LoginFragment)
-            getParentFragmentManager().popBackStack();
+            if (getParentFragmentManager() != null) {
+                getParentFragmentManager().popBackStack();
+            }
         });
 
         // Handle create account button click
@@ -124,7 +130,8 @@ public class RegisterFragment extends Fragment {
         createAccountButton.setText("Creating Account...");
 
         // Create API request
-        ApiService apiService = RetrofitClient.getApiService();
+        // Use requireContext() for safer context retrieval
+        ApiService apiService = RetrofitClient.getApiService(requireContext());
         RegisterRequest registerRequest = new RegisterRequest(username, email, password);
         Call<AuthResponse> call = apiService.registerUser(registerRequest);
 
@@ -155,9 +162,11 @@ public class RegisterFragment extends Fragment {
                     // HTTP error (409 Conflict, 500, etc.)
                     String errorMsg = "Registration failed. Code: " + response.code();
                     try {
-                        if (response.errorBody() != null) {
+                        if (response.code() == 409) {
                             // The backend sends detail on 409
                             errorMsg = "Registration failed: User already exists.";
+                        } else if (response.errorBody() != null) {
+                            errorMsg += ", " + response.errorBody().string();
                         }
                     } catch (Exception e) {
                         Log.e("RegisterError", "Error parsing error body", e);
