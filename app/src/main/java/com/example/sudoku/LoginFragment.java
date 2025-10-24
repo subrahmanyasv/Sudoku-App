@@ -58,7 +58,8 @@ public class LoginFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Initialize SessionManager
-        sessionManager = new SessionManager(getContext());
+        // Use requireContext() for safer context handling in fragments
+        sessionManager = new SessionManager(requireContext());
 
         // Find UI elements
         emailInput = view.findViewById(R.id.email_input);
@@ -72,25 +73,32 @@ public class LoginFragment extends Fragment {
         loginTitle.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                loginTitle.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                applyGradientToText(loginTitle);
+                // Add a check to ensure the view observer is alive
+                if (loginTitle.getViewTreeObserver().isAlive()) {
+                    loginTitle.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    applyGradientToText(loginTitle);
+                }
             }
         });
 
         // Handle navigation to RegisterFragment
         showRegister.setOnClickListener(v -> {
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new RegisterFragment())
-                    .addToBackStack(null)
-                    .commit();
+            if (getParentFragmentManager() != null) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new RegisterFragment())
+                        .addToBackStack(null)
+                        .commit();
+            }
         });
 
         // Handle navigation to ForgotPasswordFragment
         forgotPassword.setOnClickListener(v -> {
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new ForgotPasswordFragment())
-                    .addToBackStack(null)
-                    .commit();
+            if (getParentFragmentManager() != null) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new ForgotPasswordFragment())
+                        .addToBackStack(null)
+                        .commit();
+            }
         });
 
         // Handle login button click with API call
@@ -128,7 +136,8 @@ public class LoginFragment extends Fragment {
         loginButton.setText("Logging in...");
 
         // Create API request
-        ApiService apiService = RetrofitClient.getApiService();
+        // Use requireContext() for safer context retrieval
+        ApiService apiService = RetrofitClient.getApiService(requireContext());
         LoginRequest loginRequest = new LoginRequest(email, password);
         Call<AuthResponse> call = apiService.loginUser(loginRequest);
 

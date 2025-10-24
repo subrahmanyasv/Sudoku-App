@@ -7,207 +7,281 @@
     android:background="@color/dark_background"
     tools:context=".ProfileActivity">
 
-    <ScrollView
+    <!-- Header for Profile, adjusts for status bar --><TextView
+    android:id="@+id/profile_header_text"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Profile"
+    android:textColor="@color/white"
+    android:textSize="24sp"
+    android:textStyle="bold"
+    android:layout_marginTop="16dp"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintVertical_bias="0.0" /> <!-- Adjusts its position --><ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    app:layout_constraintTop_toBottomOf="@+id/profile_header_text"
+    app:layout_constraintBottom_toTopOf="@+id/bottom_navigation_bar"
+    android:layout_marginTop="16dp"> <!-- Add margin top for spacing --><LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation_bar">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="30dp">
+
+        <TextView
+            android:id="@+id/profile_initial_text"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            tools:background="@drawable/circle_border_blue"
+            tools:text="G" />
+
+        <TextView
+            android:id="@+id/username_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="Gamer2025"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:id="@+id/email_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="gamer2025@email.com"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"/>
+    </LinearLayout>
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabIndicatorColor="@color/accent_blue"
+        app:tabIndicatorHeight="3dp"
+        app:tabSelectedTextColor="@color/accent_blue"
+        app:tabTextColor="@color/text_secondary"
+        app:tabTextAppearance="@style/TabLayoutTextStyle"
+        android:background="@color/dark_background"
+        android:layout_marginBottom="20dp">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stats" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Achievements" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="History" />
+    </com.google.android.material.tabs.TabLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp">
 
         <LinearLayout
+            android:id="@+id/stats_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Profile"
-                android:textColor="@color/white"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="20dp" />
+            android:visibility="gone"
+            tools:visibility="visible">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center_horizontal"
-                android:layout_marginBottom="30dp">
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
 
-                <ImageView
-                    android:id="@+id/profile_image"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                <LinearLayout
+                    style="@style/ProfileStatCard"
+                    android:layout_marginEnd="8dp">
+                    <TextView
+                        style="@style/ProfileStatLabel"
+                        android:text="Games Played" />
+                    <TextView
+                        android:id="@+id/text_games_played"
+                        style="@style/ProfileStatValue"
+                        tools:text="128" />
+                </LinearLayout>
 
-                    android:background="@drawable/circle_border_blue"
-
-                    android:padding="8dp"/>
-
-                <TextView
-                    android:id="@+id/username_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Gamer2025"
-                    android:textColor="@color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:layout_marginTop="8dp"/>
-
-                <TextView
-                    android:id="@+id/email_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="gamer2025@email.com"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp"/>
+                <LinearLayout
+                    style="@style/ProfileStatCard"
+                    android:layout_marginStart="8dp">
+                    <TextView
+                        style="@style/ProfileStatLabel"
+                        android:text="Win Rate" />
+                    <TextView
+                        android:id="@+id/text_win_rate"
+                        style="@style/ProfileStatValue"
+                        tools:text="75%" />
+                </LinearLayout>
             </LinearLayout>
 
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tab_layout"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:tabIndicatorColor="@color/accent_blue"
-                app:tabIndicatorHeight="3dp"
-                app:tabSelectedTextColor="@color/accent_blue"
-                app:tabTextColor="@color/text_secondary"
-                app:tabTextAppearance="@style/TabLayoutTextStyle"
-                android:background="@color/dark_background"
-                android:layout_marginBottom="20dp">
+                android:background="@drawable/card_background"
+                android:orientation="vertical"
+                android:padding="20dp">
 
-                <com.google.android.material.tabs.TabItem
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Stats" />
+                    android:text="Best Scores"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp"/>
 
-                <com.google.android.material.tabs.TabItem
-                    android:layout_width="wrap_content"
+                <GridLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Achievements" />
+                    android:columnCount="2">
 
-                <com.google.android.material.tabs.TabItem
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="History" />
-            </com.google.android.material.tabs.TabLayout>
+                    <TextView style="@style/StatsLabelStyle" android:text="Easy:" android:textColor="#22C55E"/>
+                    <TextView android:id="@+id/text_best_easy" style="@style/StatsValueStyle" tools:text="15,200" android:gravity="start"/>
+                    <TextView style="@style/StatsLabelStyle" android:text="Medium:" android:textColor="#F97316"/>
+                    <TextView android:id="@+id/text_best_medium" style="@style/StatsValueStyle" tools:text="12,500" android:gravity="start"/>
+                    <TextView style="@style/StatsLabelStyle" android:text="Hard:" android:textColor="#EF4444"/>
+                    <TextView android:id="@+id/text_best_hard" style="@style/StatsValueStyle" tools:text="11,800" android:gravity="start"/>
+                    <TextView style="@style/StatsLabelStyle" android:text="Total Score" android:textColor="#94A3B8"/>
+                    <TextView android:id="@+id/text_total_score" style="@style/StatsValueStyle" tools:text="150,200" android:gravity="start"/>
 
-            <GridLayout
-                android:id="@+id/achievements_grid"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:columnCount="3"
-                android:rowCount="2"
-                android:alignmentMode="alignMargins"
-                android:columnOrderPreserved="false"
-                android:padding="4dp">
-
-                <LinearLayout style="@style/AchievementItemStyle">
-                    <ImageView
-                        android:id="@+id/ach_first_win_icon"
-                        android:src="@drawable/circle_achievement_filled"
-                        style="@style/AchievementIconStyle" />
-                    <TextView
-                        android:text="First Win"
-                        style="@style/AchievementTextStyle" />
-                </LinearLayout>
-
-                <LinearLayout style="@style/AchievementItemStyle">
-                    <ImageView
-                        android:id="@+id/ach_puzzle_pro_icon"
-                        android:src="@drawable/circle_achievement_filled"
-                        style="@style/AchievementIconStyle" />
-                    <TextView
-                        android:text="Puzzle Pro"
-                        style="@style/AchievementTextStyle" />
-                </LinearLayout>
-
-                <LinearLayout style="@style/AchievementItemStyle">
-                    <ImageView
-                        android:id="@+id/ach_speed_demon_icon"
-                        android:src="@drawable/circle_achievement_empty"
-                        style="@style/AchievementIconStyle" />
-                    <TextView
-                        android:text="Speed Demon"
-                        style="@style/AchievementTextStyle" />
-                </LinearLayout>
-
-                <LinearLayout style="@style/AchievementItemStyle">
-                    <ImageView
-                        android:id="@+id/ach_challenger_icon"
-                        android:src="@drawable/circle_achievement_empty"
-                        style="@style/AchievementIconStyle" />
-                    <TextView
-                        android:text="Challenger"
-                        style="@style/AchievementTextStyle" />
-                </LinearLayout>
-
-                <LinearLayout style="@style/AchievementItemStyle">
-                    <ImageView
-                        android:id="@+id/ach_perfectionist_icon"
-                        android:src="@drawable/circle_achievement_filled"
-                        style="@style/AchievementIconStyle" />
-                    <TextView
-                        android:text="Perfectionist"
-                        style="@style/AchievementTextStyle" />
-                </LinearLayout>
-
-                <LinearLayout style="@style/AchievementItemStyle">
-                    <ImageView
-                        android:id="@+id/ach_veteran_icon"
-                        android:src="@drawable/circle_achievement_empty"
-                        style="@style/AchievementIconStyle" />
-                    <TextView
-                        android:text="Veteran"
-                        style="@style/AchievementTextStyle" />
-                </LinearLayout>
-
-            </GridLayout>
+                </GridLayout>
+            </LinearLayout>
         </LinearLayout>
 
-    </ScrollView>
+        <GridLayout
+            android:id="@+id/achievements_grid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:rowCount="2"
+            android:alignmentMode="alignMargins"
+            android:columnOrderPreserved="false"
+            android:visibility="gone"
+            android:padding="4dp">
 
-    <LinearLayout
+            <LinearLayout style="@style/AchievementItemStyle">
+                <ImageView
+                    android:id="@+id/ach_first_win_icon"
+                    android:src="@drawable/circle_achievement_filled"
+                    style="@style/AchievementIconStyle" />
+                <TextView
+                    android:text="First Win"
+                    style="@style/AchievementTextStyle" />
+            </LinearLayout>
+            <LinearLayout style="@style/AchievementItemStyle">
+                <ImageView
+                    android:id="@+id/ach_puzzle_pro_icon"
+                    android:src="@drawable/circle_achievement_filled"
+                    style="@style/AchievementIconStyle" />
+                <TextView
+                    android:text="Puzzle Pro"
+                    style="@style/AchievementTextStyle" />
+            </LinearLayout>
+            <LinearLayout style="@style/AchievementItemStyle">
+                <ImageView
+                    android:id="@+id/ach_speed_demon_icon"
+                    android:src="@drawable/circle_achievement_empty"
+                    style="@style/AchievementIconStyle" />
+                <TextView
+                    android:text="Speed Demon"
+                    style="@style/AchievementTextStyle" />
+            </LinearLayout>
+            <LinearLayout style="@style/AchievementItemStyle">
+                <ImageView
+                    android:id="@+id/ach_challenger_icon"
+                    android:src="@drawable/circle_achievement_empty"
+                    style="@style/AchievementIconStyle" />
+                <TextView
+                    android:text="Challenger"
+                    style="@style/AchievementTextStyle" />
+            </LinearLayout>
+            <LinearLayout style="@style/AchievementItemStyle">
+                <ImageView
+                    android:id="@+id/ach_perfectionist_icon"
+                    android:src="@drawable/circle_achievement_filled"
+                    style="@style/AchievementIconStyle" />
+                <TextView
+                    android:text="Perfectionist"
+                    style="@style/AchievementTextStyle" />
+            </LinearLayout>
+            <LinearLayout style="@style/AchievementItemStyle">
+                <ImageView
+                    android:id="@+id/ach_veteran_icon"
+                    android:src="@drawable/circle_achievement_empty"
+                    style="@style/AchievementIconStyle" />
+                <TextView
+                    android:text="Veteran"
+                    style="@style/AchievementTextStyle" />
+            </LinearLayout>
+        </GridLayout>
+
+        <LinearLayout
+            android:id="@+id/history_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/history_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:listitem="@layout/list_item_history"
+                tools:itemCount="3"/>
+
+        </LinearLayout>
+    </FrameLayout>
+
+    <Button
+        android:id="@+id/logout_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:backgroundTint="#334155"
+        android:text="Logout"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        app:cornerRadius="12dp" />
+
+</LinearLayout>
+
+</ScrollView>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation_bar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:background="@color/nav_background"
-        android:gravity="center_vertical"
-        app:layout_constraintBottom_toBottomOf="parent">
+        android:layout_height="wrap_content"
+        android:background="#0F131E"
+        app:itemIconTint="@color/bottom_nav_color"
+        app:itemTextColor="@color/bottom_nav_color"
+        app:menu="@menu/bottom_nav_menu"
+        app:labelVisibilityMode="labeled"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Home"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"/>
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Ranks"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"/>
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Challenges"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"/>
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Profile"
-            android:textColor="@color/accent_blue"
-            android:textStyle="bold"
-            android:textSize="12sp"/>
-    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
+
