@@ -3,11 +3,13 @@ package com.example.sudoku.data.local;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 public class SessionManager {
 
     private static final String PREF_NAME = "SudokuArenaSession";
     private static final String KEY_AUTH_TOKEN = "auth_token";
+    private static final String TAG = "SessionManager";
 
     private SharedPreferences prefs;
     private SharedPreferences.Editor editor;
@@ -43,6 +45,12 @@ public class SessionManager {
         editor.remove(KEY_AUTH_TOKEN);
         editor.apply();
     }
+    // --- NEW METHOD ---
+    public void clear() {
+        editor.remove(KEY_AUTH_TOKEN);
+        editor.apply();
+        Log.d(TAG, "Auth token cleared.");
+    }
 
     /**
      * Checks if a user is currently logged in (i.e., has a token).
@@ -51,4 +59,8 @@ public class SessionManager {
     public boolean isLoggedIn() {
         return fetchAuthToken() != null;
     }
+    /**
+     * Clears the saved authentication token (for logout).
+     */
+
 }

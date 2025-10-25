@@ -27,8 +27,9 @@
     <color name="accent_orange">#F97316</color>
     <color name="accent_red">#EF4444</color>
     <color name="achievement_locked">#334057</color>
-    <color name="bottom_nav_color">#94A3B8</color>
     <color name="bottom_nav_selected_color">@color/accent_blue</color>
+
+    <color name="card_background">#1A202C</color>
 
     <string-array name="profile_avatar_colors">
         <item>#EF4444</item> <!-- Red -->

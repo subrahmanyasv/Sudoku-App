@@ -6,6 +6,9 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.Drawable;
+import android.widget.TextView;
+import android.content.res.TypedArray;
+import com.example.sudoku.R;
 
 import androidx.core.content.ContextCompat;
 
@@ -66,6 +69,38 @@ public class ProfileColorUtil {
         // Fallback: If for some reason circle_profile_background.xml isn't a GradientDrawable
         // or LayerDrawable, just return the simple colored circle.
         return backgroundCircle;
+    }
+
+    public static void setProfileColor(TextView textView, String initial) {
+        if (textView == null || initial == null || initial.isEmpty()) {
+            return;
+        }
+
+        Context context = textView.getContext();
+        TypedArray colors = context.getResources().obtainTypedArray(R.array.profile_colors_array);
+        int charCode = initial.toUpperCase().charAt(0);
+        int colorIndex = (charCode % colors.length()); // Simple hash based on first letter
+        int backgroundColor = colors.getColor(colorIndex, ContextCompat.getColor(context, R.color.accent_blue)); // Fallback color
+        colors.recycle();
+
+        // Get the circular background drawable
+        Drawable background = ContextCompat.getDrawable(context, R.drawable.circle_profile_background);
+        if (background instanceof GradientDrawable) {
+            GradientDrawable gradientDrawable = (GradientDrawable) background.mutate(); // Use mutate() to avoid affecting other instances
+            gradientDrawable.setColor(backgroundColor);
+            textView.setBackground(gradientDrawable);
+        } else {
+            // Fallback if the drawable isn't a GradientDrawable (e.g., set solid color)
+            // This part might need adjustment based on your exact drawable type if not GradientDrawable
+            try {
+                // Attempt to apply color filter if it's not a shape drawable
+                background.setColorFilter(backgroundColor, android.graphics.PorterDuff.Mode.SRC_IN);
+                textView.setBackground(background);
+            } catch (Exception e) {
+                // Last resort: set background color directly (might lose shape)
+                textView.setBackgroundColor(backgroundColor);
+            }
+        }
     }
 }
 
