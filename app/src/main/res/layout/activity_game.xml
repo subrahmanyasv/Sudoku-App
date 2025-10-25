@@ -3,53 +3,91 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0F131E"
+    android:background="@color/dark_background"
+
     android:padding="16dp"
     tools:context=".GameActivity">
 
-    <!-- Timer -->
-    <TextView
-        android:id="@+id/timer_text"
-        android:layout_width="wrap_content"
+    <!-- Header: Back Button, Timer, Pause Button -->
+    <RelativeLayout
+        android:id="@+id/game_header"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:text="Time\n00:00"
-        android:textAlignment="center"
-        android:textColor="#94A3B8"
-        android:textSize="16sp" />
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="16dp">
+
+        <ImageView
+            android:id="@+id/back_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_arrow_left"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="Back"
+            android:onClick="onBackButtonClicked"/>
+
+        <Chronometer
+            android:id="@+id/timer_chronometer"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:textColor="@color/text_secondary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:format="Time: %s"/>
+
+        <ImageView
+            android:id="@+id/pause_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_pause"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="Pause"/>
+    </RelativeLayout>
 
     <!-- Custom Sudoku Board View -->
     <com.example.sudoku.SudokuBoardView
         android:id="@+id/sudoku_board_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/timer_text"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp" />
+        android:layout_below="@id/game_header"
+        android:layout_above="@+id/control_buttons"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
 
     <!-- Control Buttons (Undo, Erase, Hint) -->
     <LinearLayout
         android:id="@+id/control_buttons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/sudoku_board_view"
+        android:layout_above="@id/number_pad"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
 
         <TextView
             android:id="@+id/undo_button"
             style="@style/GameControlButton"
+            android:drawableTop="@drawable/ic_undo"
             android:text="Undo" />
 
         <TextView
             android:id="@+id/erase_button"
             style="@style/GameControlButton"
+            android:drawableTop="@drawable/ic_eraser"
             android:text="Erase" />
 
         <TextView
             android:id="@+id/hint_button"
             style="@style/GameControlButton"
+            android:drawableTop="@drawable/ic_lightbulb"
             android:text="Hint" />
     </LinearLayout>
 
@@ -58,12 +96,11 @@
         android:id="@+id/number_pad"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/control_buttons"
-        android:layout_marginTop="16dp"
+        android:layout_above="@id/submit_button"
+        android:layout_marginBottom="8dp"
         android:columnCount="9"
         android:orientation="horizontal">
 
-        <!-- Use AppCompatButton for better styling control -->
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button_1"
             style="@style/NumberPadButton"
@@ -102,7 +139,6 @@
             android:text="9" />
     </GridLayout>
 
-
     <!-- Submit Button -->
     <Button
         android:id="@+id/submit_button"
@@ -112,9 +148,72 @@
         android:background="@drawable/button_background"
         android:padding="16dp"
         android:text="Submit Puzzle"
-        android:textColor="#10141F"
+        android:textColor="@color/white"
+
         android:textSize="18sp"
         android:textStyle="bold" />
+
+    <!-- Pause Menu Overlay (Initially Gone) -->
+    <FrameLayout
+        android:id="@+id/pause_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#A0000000"
+
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:background="@drawable/card_background"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="24dp"
+                android:text="Game Paused"
+                android:textColor="@color/white"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/resume_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="@color/accent_blue"
+                android:text="Resume"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/restart_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="@color/card_background"
+
+                android:text="Restart"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/quit_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/card_background"
+
+                android:text="Quit Game"
+                android:textColor="@color/accent_red" />
+
+        </LinearLayout>
+    </FrameLayout>
 
 </RelativeLayout>
 

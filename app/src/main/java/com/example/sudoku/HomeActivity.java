@@ -1,29 +1,29 @@
-// Relative Path: Sudoku-App/app/src/main/java/com/example/sudoku/HomeActivity.java
 package com.example.sudoku;
 
+import androidx.annotation.NonNull; // Import NonNull
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
-// Removed Button import as it's not directly used for main actions anymore
-import android.widget.ImageView; // Keep ImageView
+import android.widget.Button;
+import android.widget.ImageButton; // Import ImageButton
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
+import android.widget.RelativeLayout; // Import RelativeLayout
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.example.sudoku.data.local.SessionManager;
+import com.example.sudoku.data.model.GameResponse; // Import GameResponse
+import com.example.sudoku.data.model.PuzzleResponse; // Import PuzzleResponse
 import com.example.sudoku.data.model.UserData;
 import com.example.sudoku.data.model.UserResponse;
 import com.example.sudoku.data.network.ApiService;
 import com.example.sudoku.data.network.RetrofitClient;
-import com.example.sudoku.utils.ProfileColorUtil;
+import com.example.sudoku.utils.ProfileColorUtil; // Ensure this exists
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-
-import java.util.List; // Keep List import
+import java.util.List;
+import java.util.Locale; // Import Locale
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -31,210 +31,98 @@ import retrofit2.Response;
 
 public class HomeActivity extends AppCompatActivity {
 
-    private SessionManager sessionManager;
+    private TextView welcomeUsernameText, homeProfileInitialText;
+    private Button newGameButton;
+    private RelativeLayout continueGameCard; // Card layout
+    private TextView continueGameDetailsText; // Text inside the card
+    private ImageButton continuePlayButton;   // Button inside the card
+    private LinearLayout questsContainer;
+    private BottomNavigationView bottomNavigationView;
+
     private ApiService apiService;
-    private TextView welcomeUsernameText, profileInitialText;
-    private RelativeLayout continueGameCard;
-    private TextView continueGameDetails;
+    private SessionManager sessionManager;
+    private GameResponse inProgressGame = null; // Store the fetched in-progress game
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        sessionManager = new SessionManager(this);
         apiService = RetrofitClient.getApiService(this);
+        sessionManager = new SessionManager(this);
 
+        // Find Views
         welcomeUsernameText = findViewById(R.id.welcome_username_text);
-        profileInitialText = findViewById(R.id.home_profile_initial_text);
+        homeProfileInitialText = findViewById(R.id.home_profile_initial_text);
+        newGameButton = findViewById(R.id.new_game_button);
         continueGameCard = findViewById(R.id.continue_game_card);
-        continueGameDetails = findViewById(R.id.continue_game_details);
+        continueGameDetailsText = findViewById(R.id.continue_game_details_text);
+        continuePlayButton = findViewById(R.id.continue_play_button);
+        questsContainer = findViewById(R.id.quests_container);
+        bottomNavigationView = findViewById(R.id.bottom_navigation_bar); // Use correct ID
 
-        // --- Wire up new game card ---
-        CardView newGameCard = findViewById(R.id.new_game_card);
-        // Removed settingsIcon find as it's removed from layout
-
-        newGameCard.setOnClickListener(v -> {
-            Intent intent = new Intent(HomeActivity.this, DifficultyActivity.class);
-            startActivity(intent);
-        });
-
-        // --- Wire up profile initial click ---
-        profileInitialText.setOnClickListener(v -> {
-            Intent profileIntent = new Intent(HomeActivity.this, ProfileActivity.class);
-            profileIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-            startActivity(profileIntent);
-        });
-
-        // --- Wire up continue game card click ---
-        continueGameCard.setOnClickListener(v -> {
-            // TODO: Add logic to load the saved game state
-            Toast.makeText(this, "Continue game clicked!", Toast.LENGTH_SHORT).show();
-            // Example:
-            // Intent intent = new Intent(this, GameActivity.class);
-            // intent.putExtra("LOAD_SAVED_GAME", true);
-            // startActivity(intent);
-        });
-
-        // Removed settingsIcon onClickListener
-
-        // --- Hide continue game card initially ---
-        continueGameCard.setVisibility(View.GONE); // Hide until we know there's a saved game
-        // TODO: Add logic later to check for saved game state and show this card
-
-        // Dynamic quest loading logic (using mock data for now)
-        populateMockQuests();
-
-        // Setup Bottom Navigation
-        setupBottomNavigation();
-
-        // Fetch user data
-        fetchUserProfile();
-    }
-
-    // Removed startGame method
-
-    private void fetchUserProfile() {
-        apiService.getUser().enqueue(new Callback<UserResponse>() {
-            @Override
-            public void onResponse(Call<UserResponse> call, Response<UserResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    UserResponse userResponse = response.body();
-                    if ("success".equals(userResponse.getStatus()) && userResponse.getMessage() != null) {
-                        updateHomeUI(userResponse.getMessage());
-                    } else {
-                        // Handle cases where API returns success false or empty message
-                        Toast.makeText(HomeActivity.this, "Could not fetch user data (API error).", Toast.LENGTH_SHORT).show();
-                        // Consider redirecting to login if data is essential
-                        // handleUnauthorizedError(); // Or a specific error handling
-                    }
-                } else {
-                    if (response.code() == 401) { // Unauthorized
-                        handleUnauthorizedError();
-                    } else {
-                        Toast.makeText(HomeActivity.this, "Error fetching profile: " + response.code(), Toast.LENGTH_SHORT).show();
-                        // Redirect if necessary based on error code
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<UserResponse> call, Throwable t) {
-                Log.e("HomeActivity", "Network failure: " + t.getMessage(), t); // Log the full stack trace
-                Toast.makeText(HomeActivity.this, "Could not connect to server. Please check your internet connection.", Toast.LENGTH_LONG).show();
-
-                // --- ROBUST OFFLINE HANDLING ---
-                // Redirect back to MainActivity (Login) if the initial fetch fails
-                handleUnauthorizedError(); // Treat network failure on load like an invalid session
-            }
-        });
-    }
-
-    private void updateHomeUI(UserData user) {
-        welcomeUsernameText.setText(user.getUsername());
-        String username = user.getUsername();
-        if (username != null && !username.isEmpty()) {
-            char initial = username.toUpperCase().charAt(0);
-            profileInitialText.setText(String.valueOf(initial));
-            // Ensure ProfileColorUtil is correctly applying background
-            profileInitialText.setBackground(ProfileColorUtil.getProfileDrawable(this, initial));
-        } else {
-            // Handle case where username is null or empty
-            profileInitialText.setText("?");
-            profileInitialText.setBackground(ProfileColorUtil.getProfileDrawable(this, '?'));
+        // Setup Listeners
+        if (newGameButton != null) {
+            newGameButton.setOnClickListener(v -> {
+                Intent intent = new Intent(HomeActivity.this, DifficultyActivity.class);
+                startActivity(intent);
+            });
         }
+
+        if (homeProfileInitialText != null) {
+            homeProfileInitialText.setOnClickListener(v -> {
+                Intent profileIntent = new Intent(HomeActivity.this, ProfileActivity.class);
+                profileIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(profileIntent);
+            });
+        }
+
+        // Add listener for the continue game card/button
+        View.OnClickListener continueClickListener = v -> {
+            if (inProgressGame != null && inProgressGame.getPuzzle() != null) {
+                Intent gameIntent = new Intent(HomeActivity.this, GameActivity.class);
+                // Pass the *entire* GameResponse object, which includes the PuzzleResponse
+                gameIntent.putExtra("EXISTING_GAME_DATA", inProgressGame);
+                startActivity(gameIntent);
+            } else {
+                Toast.makeText(HomeActivity.this, "Error loading saved game.", Toast.LENGTH_SHORT).show();
+                Log.e("HomeActivity", "Attempted to continue game, but inProgressGame or its puzzle was null.");
+            }
+        };
+
+        if (continueGameCard != null) continueGameCard.setOnClickListener(continueClickListener);
+        if (continuePlayButton != null) continuePlayButton.setOnClickListener(continueClickListener);
+
+
+        setupBottomNavigation();
+        fetchUserProfile(); // Fetch user profile first
+        // Fetch in-progress game will be called after user profile fetch succeeds
+
+        populateDailyQuests(); // Keep mock quests for now
     }
-
-    private void handleUnauthorizedError() {
-        // Token is invalid, expired, or initial network failed
-        sessionManager.clearAuthToken();
-        RetrofitClient.clearInstance(); // Clear the Retrofit instance
-
-        Toast.makeText(this, "Session invalid or network error. Please log in.", Toast.LENGTH_LONG).show();
-
-        Intent intent = new Intent(HomeActivity.this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear the task stack
-        startActivity(intent);
-        finish(); // Finish HomeActivity
-    }
-
 
     @Override
     protected void onResume() {
         super.onResume();
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation_bar);
-        // Ensure the correct item is selected without triggering the listener unnecessarily
+        // Set correct item without triggering listener loop
         if (bottomNavigationView.getSelectedItemId() != R.id.navigation_home) {
             bottomNavigationView.setSelectedItemId(R.id.navigation_home);
         }
+        // Re-fetch data in case user comes back from profile/game
+        fetchUserProfile(); // Re-fetch user profile and then in-progress game
     }
-
-    private void populateMockQuests() {
-        TextView questTitle1 = findViewById(R.id.quest_title_1);
-        TextView questDesc1 = findViewById(R.id.quest_description_1);
-        TextView questTitle2 = findViewById(R.id.quest_title_2);
-        TextView questDesc2 = findViewById(R.id.quest_description_2);
-
-        // TODO: Fetch quests dynamically. Using mock data for now.
-        List<Quest> dailyQuests = QuestManager.getDailyQuests(); // Assuming this returns 2 quests
-
-        LinearLayout questContainer1 = (LinearLayout) questTitle1.getParent().getParent(); // Get the parent LinearLayout
-        LinearLayout questContainer2 = (LinearLayout) questTitle2.getParent().getParent(); // Get the parent LinearLayout
-
-
-        if (dailyQuests.size() > 0) {
-            Quest quest1 = dailyQuests.get(0);
-            questTitle1.setText(quest1.getTitle());
-            questDesc1.setText(quest1.getDescription());
-            questContainer1.setOnClickListener(v -> handleQuestClick(quest1));
-            questContainer1.setAlpha(quest1.isCompleted() ? 0.6f : 1.0f); // Adjust alpha based on completion
-
-        } else {
-            questContainer1.setVisibility(View.GONE); // Hide if no quest data
-        }
-
-        if (dailyQuests.size() > 1) {
-            Quest quest2 = dailyQuests.get(1);
-            questTitle2.setText(quest2.getTitle());
-            questDesc2.setText(quest2.getDescription());
-            questContainer2.setOnClickListener(v -> handleQuestClick(quest2));
-            questContainer2.setAlpha(quest2.isCompleted() ? 0.6f : 1.0f); // Adjust alpha based on completion
-
-        } else {
-            questContainer2.setVisibility(View.GONE); // Hide if no second quest data
-        }
-    }
-
-    // Helper method for quest clicks
-    private void handleQuestClick(Quest quest) {
-        if (quest.isCompleted()) {
-            Toast.makeText(this, "Quest '" + quest.getTitle() + "' already completed!", Toast.LENGTH_SHORT).show();
-        } else {
-            // TODO: Potentially navigate to a specific game mode or difficulty based on the quest
-            Toast.makeText(this, "Starting quest: " + quest.getTitle(), Toast.LENGTH_SHORT).show();
-            // Example: Start a game matching the quest difficulty
-            Intent intent = new Intent(HomeActivity.this, DifficultyActivity.class); // Go to difficulty selection first
-            // Or directly to GameActivity if difficulty is known:
-            // Intent intent = new Intent(HomeActivity.this, GameActivity.class);
-            // intent.putExtra("DIFFICULTY", quest.getDifficulty().toUpperCase());
-            startActivity(intent);
-        }
-    }
-
 
     private void setupBottomNavigation() {
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation_bar);
-        // Set selected item *before* the listener to avoid initial trigger
-        bottomNavigationView.setSelectedItemId(R.id.navigation_home);
-
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            Intent intent = null;
-
+            // Prevent re-launching the current activity
             if (itemId == R.id.navigation_home) {
-                // Already on this screen, do nothing
-                return true;
-            } else if (itemId == R.id.navigation_ranks) {
+                return true; // Already here, do nothing
+            }
+
+            Intent intent = null;
+            if (itemId == R.id.navigation_ranks) {
                 intent = new Intent(HomeActivity.this, LeaderboardActivity.class);
             } else if (itemId == R.id.navigation_challenges) {
                 intent = new Intent(HomeActivity.this, ChallengeActivity.class);
@@ -245,12 +133,191 @@ public class HomeActivity extends AppCompatActivity {
             if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 startActivity(intent);
-                // No finish() here, keep HomeActivity in the back stack
-                return true;
+                return true; // Return true to show item as selected
             }
-
-            return false;
+            return false; // Item not handled
         });
     }
+
+
+    private void fetchUserProfile() {
+        if (apiService == null) {
+            Log.e("HomeActivity", "ApiService is null, cannot fetch profile.");
+            // Maybe redirect to login or show error
+            return;
+        }
+
+        apiService.getUser().enqueue(new Callback<UserResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<UserResponse> call, @NonNull Response<UserResponse> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().getMessage() != null) {
+                    UserData userData = response.body().getMessage();
+                    updateUI(userData);
+                    // Now fetch the in-progress game AFTER successfully getting user data
+                    fetchInProgressGame();
+                } else {
+                    Log.e("HomeActivity", "Error fetching user profile: " + response.code() + " - " + response.message());
+                    if (response.code() == 401) { // Unauthorized
+                        handleUnauthorizedError();
+                    } else {
+                        Toast.makeText(HomeActivity.this, "Error loading profile: " + response.message(), Toast.LENGTH_SHORT).show();
+                        // Handle other errors, maybe show placeholders or retry
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<UserResponse> call, @NonNull Throwable t) {
+                Log.e("HomeActivity", "Network error fetching user profile: " + t.getMessage(), t);
+                // More robust handling: Check connectivity, redirect if needed
+                handleNetworkError(); // Call the specific network error handler
+            }
+        });
+    }
+
+    // --- New method to fetch in-progress game ---
+    private void fetchInProgressGame() {
+        if (apiService == null) {
+            Log.e("HomeActivity", "ApiService is null, cannot fetch in-progress game.");
+            return;
+        }
+
+        apiService.getInProgressGame().enqueue(new Callback<GameResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<GameResponse> call, @NonNull Response<GameResponse> response) {
+                if (response.isSuccessful()) {
+                    inProgressGame = response.body(); // Can be null if no game found
+                    updateContinueCardVisibility();
+                } else {
+                    // Handle errors specifically for fetching the in-progress game
+                    Log.e("HomeActivity", "Error fetching in-progress game: " + response.code() + " - " + response.message());
+                    if (response.code() == 401) {
+                        handleUnauthorizedError(); // Still handle auth errors
+                    } else {
+                        // Non-auth error, maybe just log it or show a subtle message
+                        // Toast.makeText(HomeActivity.this, "Could not check for saved game.", Toast.LENGTH_SHORT).show();
+                        inProgressGame = null; // Ensure it's null on error
+                        updateContinueCardVisibility(); // Hide card if error occurs
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<GameResponse> call, @NonNull Throwable t) {
+                Log.e("HomeActivity", "Network error fetching in-progress game: " + t.getMessage(), t);
+                // Network error, treat as no game found for UI purposes
+                inProgressGame = null;
+                updateContinueCardVisibility();
+                // Don't necessarily redirect to login for this specific error,
+                // maybe just disable the continue button if it was previously visible.
+            }
+        });
+    }
+
+    // --- New method to update UI based on in-progress game ---
+    private void updateContinueCardVisibility() {
+        if (continueGameCard == null || newGameButton == null || continueGameDetailsText == null) return; // Views not ready
+
+        if (inProgressGame != null && inProgressGame.getPuzzle() != null) {
+            // Show Continue Card, Hide New Game Button
+            continueGameCard.setVisibility(View.VISIBLE);
+            newGameButton.setVisibility(View.GONE);
+
+            // Populate Card Details
+            String difficulty = inProgressGame.getDifficulty() != null ?
+                    Character.toUpperCase(inProgressGame.getDifficulty().charAt(0)) + inProgressGame.getDifficulty().substring(1)
+                    : "Unknown";
+            int seconds = inProgressGame.getDurationSeconds();
+            String timeStr = String.format(Locale.getDefault(), "%02d:%02d", seconds / 60, seconds % 60);
+            String details = difficulty + " Puzzle - " + timeStr;
+            continueGameDetailsText.setText(details);
+
+            Log.d("HomeActivity", "Showing continue card for game: " + inProgressGame.getId());
+        } else {
+            // Hide Continue Card, Show New Game Button
+            continueGameCard.setVisibility(View.GONE);
+            newGameButton.setVisibility(View.VISIBLE);
+            Log.d("HomeActivity", "No in-progress game found. Showing new game button.");
+        }
+    }
+
+
+    private void updateUI(UserData userData) {
+        if (userData == null) return;
+
+        if (welcomeUsernameText != null) {
+            welcomeUsernameText.setText(userData.getUsername());
+        }
+        if (homeProfileInitialText != null && userData.getUsername() != null && !userData.getUsername().isEmpty()) {
+            String initial = userData.getUsername().substring(0, 1).toUpperCase();
+            homeProfileInitialText.setText(initial);
+            // Apply color using the utility class
+            ProfileColorUtil.setProfileColor(homeProfileInitialText, initial);
+        }
+    }
+
+    private void handleUnauthorizedError() {
+        sessionManager.clear();
+        RetrofitClient.clearInstance();
+        Toast.makeText(this, "Session expired or invalid. Please log in again.", Toast.LENGTH_LONG).show();
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    private void handleNetworkError() {
+        // More robust handling for network failure during profile fetch
+        Toast.makeText(this, "Could not connect to server. Please check your internet connection.", Toast.LENGTH_LONG).show();
+        // Option 1: Stay on HomeActivity but maybe disable buttons or show placeholders
+        // updateUI(null); // Clear username, show placeholders?
+        // disableButtons();
+
+        // Option 2: Redirect to login (more strict, ensures user can't proceed offline if profile is needed)
+        handleUnauthorizedError(); // Reuse the logic to clear session and go to login
+    }
+
+
+    // --- Mock Quest Population (Keep as is for now) ---
+    private void populateDailyQuests() {
+        if (questsContainer == null) return;
+        List<Quest> dailyQuests = QuestManager.getDailyQuests();
+        LayoutInflater inflater = LayoutInflater.from(this);
+
+        questsContainer.removeAllViews(); // Clear old quests
+
+        for (Quest quest : dailyQuests) {
+            View questView = inflater.inflate(R.layout.list_item_quest, questsContainer, false);
+            TextView questTitle = questView.findViewById(R.id.quest_title);
+            TextView questDescription = questView.findViewById(R.id.quest_description);
+            // Assuming your list_item_quest.xml has these IDs now based on activity_home.xml
+            // Update: We'll use the generic IDs from list_item_quest.xml
+
+            questTitle.setText(quest.getTitle());
+            questDescription.setText(quest.getDescription());
+
+            questView.setOnClickListener(v -> {
+                if (quest.isCompleted()) {
+                    Toast.makeText(this, "Quest already completed!", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Start game with specific difficulty for the quest
+                    Intent intent = new Intent(HomeActivity.this, DifficultyActivity.class);
+                    // Pass difficulty *specifically* for the quest
+                    // intent.putExtra("QUEST_DIFFICULTY", quest.getDifficulty()); // Use a distinct key if needed
+                    // For now, assume DifficultyActivity handles "DIFFICULTY" generically
+                    intent.putExtra("DIFFICULTY", quest.getDifficulty());
+                    startActivity(intent);
+                }
+            });
+
+            if (quest.isCompleted()) {
+                questView.setAlpha(0.6f);
+                // Optionally change background or add checkmark icon
+            }
+
+            questsContainer.addView(questView);
+        }
+    }
+
 }
 

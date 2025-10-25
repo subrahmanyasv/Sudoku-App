@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/dark_background"
     android:fitsSystemWindows="true"
+
     tools:context=".HomeActivity">
 
     <ScrollView
@@ -20,14 +21,11 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-
-
+            <!-- Header -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp">
-
-
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -53,122 +51,100 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-
-
+                <!-- Profile Initial (Clickable) -->
                 <TextView
                     android:id="@+id/home_profile_initial_text"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
                     android:gravity="center"
                     android:textColor="@color/white"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    tools:background="@drawable/circle_border_blue"
-                    tools:text="G"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
                     android:clickable="true"
                     android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless"/>
+                    android:background="?attr/selectableItemBackgroundBorderless"
 
+                    tools:background="@drawable/circle_border_blue"
+                    tools:text="G" />
             </RelativeLayout>
 
-
-
+            <!-- *** Continue Game Card (Initially Gone) *** -->
             <RelativeLayout
                 android:id="@+id/continue_game_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/card_background"
-                android:padding="20dp"
+                android:padding="16dp"
                 android:layout_marginBottom="16dp"
-                android:clickable="true"
-                android:focusable="true">
+                android:visibility="gone"
+
+                tools:visibility="visible">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true">
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/continue_play_button">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Continue Your Last Game"
                         android:textColor="@color/white"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textStyle="bold"/>
 
                     <TextView
-                        android:id="@+id/continue_game_details"
+                        android:id="@+id/continue_game_details_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         tools:text="Medium Puzzle - 04:12"
                         android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
 
-
-
-                <FrameLayout
-
+                <ImageButton
+                    android:id="@+id/continue_play_button"
                     android:layout_width="48dp"
-
                     android:layout_height="48dp"
-                    android:background="@drawable/play_icon_background"
-
                     android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true">
-                    <ImageView
-                        android:layout_width="24dp"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/button_background"
 
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_play"
-                        android:layout_gravity="center"
+                    android:src="@drawable/ic_play"
+                    app:tint="@color/white"
 
-                        app:tint="@color/dark_background"
-                        android:contentDescription="Play"/>
-                </FrameLayout>
+                    android:contentDescription="Continue Game"
+                    android:padding="12dp"/>
             </RelativeLayout>
 
-
-
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/new_game_card"
+            <!-- New Game Button (Can be hidden if continue card is visible) -->
+            <Button
+                android:id="@+id/new_game_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardBackgroundColor="@color/accent_blue"
-                android:layout_marginBottom="16dp"
-                android:clickable="true"
-                android:focusable="true">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="24dp">
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/ic_game_controller"
-                        app:tint="@color/dark_background"
-                        android:contentDescription="New Game"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="New Game"
-                        android:textColor="@color/dark_background"
-                        android:textSize="22sp"
-                        android:textStyle="bold"
-                        android:layout_marginTop="8dp"/>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                android:text="New Game"
+                android:background="@drawable/button_background"
+
+                android:textColor="@color/white"
+
+                android:padding="16dp"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="24dp"
+                app:icon="@drawable/ic_game_controller"
+
+                app:iconTint="@color/white"
+
+                app:iconPadding="8dp"
+                app:iconGravity="textStart"/>
 
 
-
+            <!-- Daily Quests Title -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -176,25 +152,23 @@
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="12dp"/>
 
-
-
+            <!-- Quests Container -->
             <LinearLayout
                 android:id="@+id/quests_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" >
-
-
+                android:orientation="vertical">
+                <!-- Example Quest Items (Use tools:visibility for preview) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/card_background"
                     android:padding="12dp"
                     android:layout_marginBottom="8dp"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    tools:visibility="visible">
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
@@ -210,21 +184,18 @@
                             android:id="@+id/quest_title_1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:text="Speed Runner"
                             android:textColor="@color/white"
-                            android:textStyle="bold"
-                            tools:text="Speed Runner"/>
+                            android:textStyle="bold"/>
                         <TextView
-                            android:id="@+id/quest_description_1"
+                            android:id="@+id/quest_desc_1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:text="Complete a Medium puzzle under 10 mins"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp"
-                            tools:text="Complete a Medium puzzle in under 10 mins"/>
+                            android:textSize="12sp"/>
                     </LinearLayout>
                 </LinearLayout>
-
-
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -232,8 +203,9 @@
                     android:padding="12dp"
                     android:layout_marginBottom="8dp"
                     android:gravity="center_vertical"
-                    android:alpha="0.6">
+                    android:alpha="0.6"
 
+                    tools:visibility="visible">
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
@@ -249,21 +221,19 @@
                             android:id="@+id/quest_title_2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:text="Flawless Victory"
                             android:textColor="@color/white"
-                            android:textStyle="bold"
-                            tools:text="Flawless Victory"/>
+                            android:textStyle="bold"/>
                         <TextView
-                            android:id="@+id/quest_description_2"
+                            android:id="@+id/quest_desc_2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:text="Win a puzzle with 0 errors (Completed)"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp"
-                            tools:text="Win a puzzle with 0 errors (Completed)"/>
+                            android:textSize="12sp"/>
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
-
-
 
         </LinearLayout>
     </ScrollView>

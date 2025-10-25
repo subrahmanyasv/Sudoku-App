@@ -1,18 +1,4 @@
 <resources>
-
-    <!-- Style for the number pad buttons in the game -->
-    <style name="NumberPadButton" parent="Widget.AppCompat.Button.Borderless">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:background">@drawable/number_button_background</item>
-        <item name="android:textColor">@android:color/white</item>
-        <item name="android:textSize">20sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:layout_margin">4dp</item>
-        <item name="android:padding">12dp</item>
-    </style>
-
     <!-- Style for the game control buttons (Undo, Erase, Hint) -->
     <style name="GameControlButton">
         <item name="android:layout_width">0dp</item>
@@ -76,6 +62,54 @@
         <item name="android:textStyle">bold</item>
     </style>
     <!-- ############################################ -->
+
+    <style name="GameControlLayout">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="GameControlIcon">
+        <item name="android:layout_width">24dp</item>
+        <item name="android:layout_height">24dp</item>
+        <item name="android:layout_marginBottom">4dp</item>
+        <item name="tint">@color/text_secondary</item>
+
+    </style>
+
+    <style name="GameControlLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">12sp</item>
+
+    </style>
+
+
+
+    <style name="NumberPadButton" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_columnWeight">1</item>
+
+        <item name="android:background">@drawable/number_button_background</item>
+        <item name="android:textColor">@color/white</item>
+
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_margin">2dp</item>
+
+        <item name="android:paddingTop">10dp</item>
+
+        <item name="android:paddingBottom">10dp</item>
+
+    </style>
 
 </resources>
 
