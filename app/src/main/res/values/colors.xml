@@ -69,4 +69,56 @@
         <item>@color/profile_color_9</item>
         <item>@color/profile_color_10</item>
     </array>
+
+
+    <!-- Theme Colors (Dark Theme) -->
+    <color name="primary_background">#1e293b</color> <!-- *** ADDED THIS LINE *** -->
+    <color name="button_primary">#22d3ee</color> <!-- Cyan -->
+    <color name="button_primary_pressed">#06b6d4</color>
+    <color name="button_secondary">#475569</color>
+    <color name="button_secondary_pressed">#64748b</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#e2e8f0</color> <!-- Light Slate Gray -->
+    <color name="text_primary_inverted">#0f172a</color> <!-- Very Dark Slate (for light backgrounds like buttons) -->
+    <color name="text_accent">#22d3ee</color> <!-- Cyan -->
+    <color name="text_error">#f87171</color> <!-- Red -->
+    <color name="text_success">#4ade80</color> <!-- Green -->
+    <color name="text_warning">#fbbf24</color> <!-- Amber -->
+
+    <!-- Difficulty Colors -->
+    <color name="difficulty_easy">#4ade80</color> <!-- Green -->
+    <color name="difficulty_medium">#fb923c</color> <!-- Orange -->
+    <color name="difficulty_hard">#f87171</color> <!-- Red -->
+
+    <!-- Sudoku Board Colors -->
+    <color name="board_line_thick">#64748b</color>
+    <color name="board_line_thin">#475569</color>
+    <color name="board_cell_selected">#0e7490</color> <!-- Dark Cyan -->
+    <color name="board_cell_related">#475569</color> <!-- Secondary Button Color -->
+    <color name="board_cell_same_number">#38bdf8</color> <!-- Light Blue -->
+    <color name="board_text_starting">#e2e8f0</color> <!-- Text Primary -->
+    <color name="board_text_user">#67e8f9</color> <!-- Lighter Cyan -->
+    <color name="board_text_error">#fb7185</color> <!-- Rose -->
+
+
+    <!-- Specific UI Element Colors -->
+    <color name="profile_avatar_border">#22d3ee</color> <!-- Cyan -->
+    <color name="tab_selected_background">#22d3ee</color> <!-- Cyan -->
+    <color name="tab_unselected_text">#94a3b8</color> <!-- Text Secondary -->
+    <color name="tab_selected_text">#0f172a</color> <!-- Text Primary Inverted -->
+    <color name="bottom_nav_active">#22d3ee</color> <!-- Cyan -->
+    <color name="bottom_nav_inactive">#94a3b8</color> <!-- Text Secondary -->
+
+    <!-- Rank Colors -->
+    <color name="rank_1_border">#fbbf24</color> <!-- Amber 500 -->
+    <color name="rank_2_border">#a1a1aa</color> <!-- Zinc 400 -->
+    <color name="rank_3_border">#ea580c</color> <!-- Orange 600 -->
+
+    <!-- Achievement Colors -->
+    <color name="achievement_locked_icon">#64748b</color>
+    <color name="achievement_unlocked_icon">#22d3ee</color>
+    <color name="achievement_locked_bg">#475569</color>
+    <color name="achievement_unlocked_bg">@android:color/transparent</color>
 </resources>
+
