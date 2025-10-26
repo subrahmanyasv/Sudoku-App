@@ -1,34 +1,43 @@
-// Relative Path: Sudoku-App/app/src/main/java/com/example/sudoku/GameHistoryAdapter.java
+// Relative Path: app/src/main/java/com/example/sudoku/GameHistoryAdapter.java
 package com.example.sudoku;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat; // For colors
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.sudoku.data.model.GameResponse; // Use GameResponse
+import com.example.sudoku.data.model.GameResponse;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit; // For time formatting
+import java.util.concurrent.TimeUnit;
 
 public class GameHistoryAdapter extends RecyclerView.Adapter<GameHistoryAdapter.HistoryViewHolder> {
 
-    private List<GameResponse> historyList; // Use GameResponse
-    private final Context context; // Store context if needed for resources
+    private List<GameResponse> historyList;
+    private final Context context;
+    private final String currentUserId; // Added to determine challenge win/loss
 
-    public GameHistoryAdapter(List<GameResponse> historyList, Context context) {
-        this.historyList = historyList;
+    // Modified Constructor
+    public GameHistoryAdapter(List<GameResponse> historyList, Context context, String currentUserId) {
+        this.historyList = (historyList != null) ? historyList : new ArrayList<>();
         this.context = context;
+        this.currentUserId = currentUserId; // Store current user ID
+        if (currentUserId == null) {
+            Log.w("GameHistoryAdapter", "Current User ID is null. Challenge win/loss status may be incorrect.");
+        }
     }
 
     @NonNull
@@ -40,42 +49,120 @@ public class GameHistoryAdapter extends RecyclerView.Adapter<GameHistoryAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull HistoryViewHolder holder, int position) {
-        GameResponse game = historyList.get(position);
+        GameResponse historyItem = historyList.get(position);
+        if (historyItem == null) return;
 
-        // Set Difficulty and Time
-        String difficulty = capitalize(game.getDifficulty());
-        int timeSeconds = game.getDurationSeconds();
-        String timeFormatted = String.format(Locale.getDefault(), "%02d:%02d",
-                TimeUnit.SECONDS.toMinutes(timeSeconds),
-                timeSeconds % 60);
-        holder.difficultyTimeText.setText(String.format("%s - %s", difficulty, timeFormatted));
+        // Set Date (Common to both)
+        holder.dateText.setText(formatDate(historyItem.getCompletedAt()));
 
-        // Set Score
-        holder.scoreText.setText(String.valueOf(game.getFinalScore()));
+        if (historyItem.isChallenge()) {
+            // --- Display Challenge Result ---
+            holder.scoreText.setVisibility(View.GONE); // Hide standard score
+            holder.challengeResultIcon.setVisibility(View.VISIBLE); // Show icon view
 
-        // Set Date (parse and format)
-        holder.dateText.setText(formatDate(game.getCompletedAt()));
+            String opponentName = "Unknown";
+            boolean userWon = false;
+            boolean isTie = false;
+            boolean userWasChallenger = false; // Flag to know user's role
 
-        // Set color based on difficulty
-        int colorResId;
-        switch (game.getDifficulty().toLowerCase()) {
-            case "easy":
-                colorResId = R.color.difficulty_easy; // Make sure these colors exist in colors.xml
-                break;
-            case "medium":
-                colorResId = R.color.difficulty_medium;
-                break;
-            case "hard":
-                colorResId = R.color.difficulty_hard;
-                break;
-            default:
-                colorResId = R.color.text_secondary; // Fallback color
-                break;
+            // Determine opponent and if current user won using IDs
+            if (currentUserId != null) {
+                // *** MODIFIED: Use getChallengerId() and getOpponentId() ***
+                if (currentUserId.equals(historyItem.getChallengerId())) { // User was Challenger
+                    userWasChallenger = true;
+                    opponentName = historyItem.getOpponentUsername() != null ? historyItem.getOpponentUsername() : "Opponent";
+                    userWon = currentUserId.equals(historyItem.getWinnerId());
+                } else if (currentUserId.equals(historyItem.getOpponentId())) { // User was Opponent
+                    userWasChallenger = false;
+                    opponentName = historyItem.getChallengerUsername() != null ? historyItem.getChallengerUsername() : "Challenger";
+                    userWon = currentUserId.equals(historyItem.getWinnerId());
+                } else {
+                    Log.w("GameHistoryAdapter", "User ID " + currentUserId + " doesn't match challenger (" + historyItem.getChallengerId() + ") or opponent (" + historyItem.getOpponentId() + ")");
+                }
+
+                // Check for tie (winnerId might be null if backend doesn't set it on tie)
+                isTie = historyItem.getWinnerId() == null;
+                // Refined tie check based on backend logic (tie goes to challenger)
+                // If winner is null OR winner is challenger AND challenger duration >= opponent duration
+                Integer oppDuration = historyItem.getOpponentDuration();
+                Integer chalDuration = historyItem.getChallengerDuration();
+                if (!userWon && historyItem.getWinnerId() != null && historyItem.getWinnerId().equals(historyItem.getChallengerId()) && oppDuration != null && chalDuration != null && chalDuration >= oppDuration) {
+                    // This scenario suggests the challenger won on a tie or outright
+                    // If the user *was* the challenger, it's still a win for them. If they were opponent, it's a loss.
+                    // The simple userWon check should cover this based on winnerId. Let's rely on winnerId.
+                    isTie = false; // Rely solely on winnerId being null for a true tie/error state
+                }
+                if (historyItem.getWinnerId() == null) {
+                    Log.w("GameHistoryAdapter", "Winner ID is null for completed challenge " + historyItem.getId() + ". Displaying as Tie.");
+                    isTie = true; // Treat null winnerId as a tie or data issue
+                }
+
+
+            } else {
+                Log.e("GameHistoryAdapter", "Current User ID is null, cannot determine challenge result accurately.");
+                // Display as undetermined?
+                opponentName = historyItem.getChallengerUsername() != null ? historyItem.getChallengerUsername() : (historyItem.getOpponentUsername() != null ? historyItem.getOpponentUsername() : "Player");
+                isTie = true; // Treat as tie if user ID unknown
+            }
+
+
+            // Line 1: Opponent Info
+            holder.line1Text.setText(String.format("vs %s (%s)", opponentName, capitalize(historyItem.getDifficulty())));
+            holder.line1Text.setTextColor(ContextCompat.getColor(context, R.color.text_primary)); // Reset color
+
+            // Line 2: Result Text & Icon
+            String resultText;
+            int resultColorResId;
+            int resultIconResId;
+
+            if (isTie) {
+                resultText = "Result: Tie / Undetermined";
+                resultColorResId = R.color.text_secondary;
+                resultIconResId = R.drawable.ic_pause; // Placeholder for tie icon
+            } else if (userWon) {
+                resultText = "Result: You Won!";
+                resultColorResId = R.color.difficulty_easy; // Green for win
+                resultIconResId = R.drawable.ic_check_circle; // Checkmark for win
+            } else {
+                resultText = "Result: You Lost";
+                resultColorResId = R.color.difficulty_hard; // Red for loss
+                // Using a different icon for loss, e.g., a simple 'close' or 'X' icon
+                // android.R.drawable.ic_delete might be too strong, let's assume you have an 'ic_close' or similar
+                resultIconResId = android.R.drawable.ic_menu_close_clear_cancel; // Using a standard cancel icon
+            }
+
+            holder.line2Text.setText(resultText);
+            holder.line2Text.setTextColor(ContextCompat.getColor(context, resultColorResId));
+            holder.challengeResultIcon.setImageResource(resultIconResId);
+            // Use mutate() to avoid tinting all instances of the drawable if it's reused elsewhere
+            holder.challengeResultIcon.getDrawable().mutate().setTint(ContextCompat.getColor(context, resultColorResId));
+
+
+        } else {
+            // --- Display Standard Game Result ---
+            holder.scoreText.setVisibility(View.VISIBLE); // Show standard score
+            holder.challengeResultIcon.setVisibility(View.GONE); // Hide challenge icon view
+
+            // Line 1: Difficulty
+            String difficulty = capitalize(historyItem.getDifficulty());
+            holder.line1Text.setText(String.format("%s Puzzle", difficulty));
+
+            // Line 2: Time
+            int timeSeconds = historyItem.getDurationSeconds();
+            String timeFormatted = String.format(Locale.getDefault(), "%02d:%02d",
+                    TimeUnit.SECONDS.toMinutes(timeSeconds),
+                    timeSeconds % 60);
+            holder.line2Text.setText(String.format("Time: %s", timeFormatted));
+
+            // Set colors based on difficulty
+            int colorResId = getDifficultyColor(historyItem.getDifficulty());
+            holder.line1Text.setTextColor(ContextCompat.getColor(context, colorResId));
+            holder.line2Text.setTextColor(ContextCompat.getColor(context, colorResId));
+            holder.scoreText.setText(String.valueOf(historyItem.getFinalScore()));
+            holder.scoreText.setTextColor(ContextCompat.getColor(context, colorResId));
         }
-        holder.difficultyTimeText.setTextColor(ContextCompat.getColor(context, colorResId));
-        holder.scoreText.setTextColor(ContextCompat.getColor(context, colorResId));
-
     }
+
 
     @Override
     public int getItemCount() {
@@ -84,78 +171,94 @@ public class GameHistoryAdapter extends RecyclerView.Adapter<GameHistoryAdapter.
 
     // Method to update the data in the adapter
     public void updateData(List<GameResponse> newHistoryList) {
-        this.historyList = newHistoryList;
+        this.historyList = (newHistoryList != null) ? newHistoryList : new ArrayList<>();
+        Log.d("GameHistoryAdapter", "Updating adapter with " + this.historyList.size() + " items.");
         notifyDataSetChanged(); // Refresh the RecyclerView
     }
 
-    // Helper to capitalize strings
+    // --- Helper Methods ---
+
     private String capitalize(String str) {
         if (str == null || str.isEmpty()) {
-            return str;
+            return "Unknown";
         }
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
+        // Capitalize first letter, make rest lowercase for consistency
+        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
     }
 
-    // Helper to format the date string
+    private int getDifficultyColor(String difficulty) {
+        if (difficulty == null) return R.color.text_secondary;
+        switch (difficulty.toLowerCase()) {
+            case "easy": return R.color.difficulty_easy;
+            case "medium": return R.color.difficulty_medium;
+            case "hard": return R.color.difficulty_hard;
+            default: return R.color.text_secondary;
+        }
+    }
+
+    // Improved Date Formatting (handles potential missing Z and fractional seconds more robustly)
     private String formatDate(String isoDateString) {
         if (isoDateString == null || isoDateString.isEmpty()) {
-            return "N/A";
+            return "Unknown Date";
         }
-        try {
-            // Input format from backend (assuming ISO 8601 with possible microseconds)
-            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-            // Handle potential fractional seconds if present
-            if (isoDateString.contains(".")) {
-                inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.US);
-                // Handle timezone if present
-                if (isoDateString.endsWith("Z") || isoDateString.contains("+")) {
-                    // Adjust format if timezone info is included
-                    if (isoDateString.endsWith("Z")) {
-                        inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.US);
-                        inputFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-                    } else if (isoDateString.contains("+")) {
-                        // More complex timezone offset parsing might be needed if format varies
-                        inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX", Locale.US); // Assumes XXX format like +05:30
-                    }
-                }
-            } else if (isoDateString.endsWith("Z") || isoDateString.contains("+")) {
-                // Handle timezone for format without fractional seconds
-                if (isoDateString.endsWith("Z")) {
-                    inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+
+        // Try parsing common ISO 8601 formats, prioritizing UTC ('Z')
+        String[] possibleFormats = {
+                "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", // With fractional seconds and Z
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",         // Without fractional seconds and Z
+                "yyyy-MM-dd'T'HH:mm:ss.SSSSSS",    // With fractional seconds, no Z
+                "yyyy-MM-dd'T'HH:mm:ss"             // Without fractional seconds, no Z
+        };
+
+        Date date = null;
+        for (String format : possibleFormats) {
+            try {
+                SimpleDateFormat inputFormat = new SimpleDateFormat(format, Locale.US);
+                // Assume UTC if Z is present or no timezone info is given in these formats
+                if (format.endsWith("'Z'") || (!format.contains("Z") && !format.contains("+") && !format.contains("-"))) {
                     inputFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-                } else if (isoDateString.contains("+")) {
-                    inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US);
                 }
+                date = inputFormat.parse(isoDateString);
+                if (date != null) {
+                    break; // Successfully parsed
+                }
+            } catch (ParseException e) {
+                // Ignore and try the next format
             }
+        }
 
+        if (date == null) {
+            Log.e("GameHistoryAdapter", "Failed to parse date string: " + isoDateString);
+            return isoDateString; // Return original if all formats fail
+        }
 
-            Date date = inputFormat.parse(isoDateString);
-
-            // Output format (e.g., "Oct 26, 2025")
+        try {
+            // Format for display in local timezone
             SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
             outputFormat.setTimeZone(TimeZone.getDefault()); // Display in local time
-
             return outputFormat.format(date);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            return isoDateString; // Return original string if parsing fails
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace(); // Catch potential timezone errors
-            return isoDateString;
+        } catch (Exception e) {
+            Log.e("GameHistoryAdapter", "Error formatting date object for display", e);
+            return "Invalid Date";
         }
     }
 
 
+    // --- ViewHolder ---
     static class HistoryViewHolder extends RecyclerView.ViewHolder {
-        TextView difficultyTimeText;
-        TextView scoreText;
-        TextView dateText; // Added TextView for date
+        TextView line1Text; // Renamed for generic use
+        TextView line2Text; // Renamed for generic use
+        TextView dateText;
+        TextView scoreText; // For standard game score
+        ImageView challengeResultIcon; // For challenge win/loss icon
 
         HistoryViewHolder(View itemView) {
             super(itemView);
-            difficultyTimeText = itemView.findViewById(R.id.history_item_difficulty_time);
+            line1Text = itemView.findViewById(R.id.history_item_line1_text); // Updated ID
+            line2Text = itemView.findViewById(R.id.history_item_line2_text); // Updated ID
+            dateText = itemView.findViewById(R.id.history_item_date);
             scoreText = itemView.findViewById(R.id.history_item_score);
-            dateText = itemView.findViewById(R.id.history_item_date); // Initialize date TextView
+            challengeResultIcon = itemView.findViewById(R.id.history_item_challenge_result_icon); // Updated ID
         }
     }
 }
