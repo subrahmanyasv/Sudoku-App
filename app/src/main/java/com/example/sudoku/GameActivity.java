@@ -64,6 +64,7 @@ public class GameActivity extends AppCompatActivity {
     private String currentDifficulty;
     private String currentSolutionString; // Store the solution string locally
     private int initialDurationSeconds = 0;
+    private int initialErrorsMade = 0; // *** ADDED: Store initial errors ***
     private String initialCurrentState = null;
 
     private boolean isPaused = false;
@@ -151,16 +152,20 @@ public class GameActivity extends AppCompatActivity {
                 currentGameId = existingGame.getId(); // Standard game ID
                 currentDifficulty = existingGame.getDifficulty();
                 initialDurationSeconds = existingGame.getDurationSeconds();
-                initialCurrentState = existingGame.getCurrentState();
-                currentSolutionString = existingGame.getPuzzle().getSolutionString(); // Get solution
+                initialCurrentState = existingGame.getCurrentState(); // Use get() not field
+                currentSolutionString = existingGame.getPuzzle().getSolutionString();
+                initialErrorsMade = existingGame.getErrorsMade(); // *** Store initial errors ***
 
-                Log.d("GameActivity", "Resuming Game: GameID=" + currentGameId + ", PuzzleID=" + currentPuzzleId + ", Initial Duration=" + initialDurationSeconds);
+                Log.d("GameActivity", "Resuming Game: GameID=" + currentGameId + ", PuzzleID=" + currentPuzzleId + ", Initial Duration=" + initialDurationSeconds + ", Initial Errors=" + initialErrorsMade);
 
                 if (existingGame.getPuzzle().getBoardString() != null) {
                     sudokuBoardView.setBoard(existingGame.getPuzzle().getBoardString(), currentSolutionString);
-                    if (initialCurrentState != null && !initialCurrentState.equals(existingGame.getPuzzle().getBoardString())) {
+                    // Load state if it exists and is different from initial board
+                    if (initialCurrentState != null && !initialCurrentState.isEmpty() && !initialCurrentState.equals(existingGame.getPuzzle().getBoardString())) {
                         sudokuBoardView.loadCurrentState(initialCurrentState);
                     }
+                    // *** Restore the error count ***
+                    sudokuBoardView.setErrorCount(initialErrorsMade);
                     return true;
                 } else {
                     Log.e("GameActivity", "Board string missing in existing game data.");
@@ -172,7 +177,7 @@ public class GameActivity extends AppCompatActivity {
             }
         }
         // --- Starting a new game OR a challenge game ---
-        else if (intent.hasExtra("PUZZLE_DATA")) {
+        else if (intent.hasExtra("PUZ ZLE_DATA")) {
             PuzzleResponse puzzleData = (PuzzleResponse) intent.getSerializableExtra("PUZZLE_DATA");
             if (puzzleData != null) {
                 currentPuzzleId = puzzleData.getId();
@@ -180,7 +185,8 @@ public class GameActivity extends AppCompatActivity {
                 currentDifficulty = puzzleData.getDifficulty();
                 initialDurationSeconds = 0; // New game always starts at 0
                 initialCurrentState = null; // No saved state
-                currentSolutionString = puzzleData.getSolutionString(); // *** Get solution (will be null for old challenge impl) ***
+                currentSolutionString = puzzleData.getSolutionString();
+                initialErrorsMade = 0; // New game starts with 0 errors
 
                 if (isChallengeGame) {
                     Log.d("GameActivity", "Starting Challenge Game: ChallengeID=" + currentGameId + ", PuzzleID=" + currentPuzzleId + ", Solution Provided: " + (currentSolutionString != null));
@@ -190,8 +196,9 @@ public class GameActivity extends AppCompatActivity {
 
 
                 if (puzzleData.getBoardString() != null) {
-                    // *** Pass the potentially null solution string ***
                     sudokuBoardView.setBoard(puzzleData.getBoardString(), currentSolutionString);
+                    // Set initial error count for new game
+                    sudokuBoardView.setErrorCount(initialErrorsMade);
                     return true;
                 } else {
                     Log.e("GameActivity", "Board string missing in new puzzle data.");
@@ -241,49 +248,38 @@ public class GameActivity extends AppCompatActivity {
             eraseButton.setOnClickListener(v -> sudokuBoardView.eraseNumber());
         }
         if (hintButton != null) {
-            hintButton.setOnClickListener(v -> {
-                if (hintsUsed >= MAX_HINTS) {
-                    Toast.makeText(this, "You have used all " + MAX_HINTS + " hints!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                int hintResult = sudokuBoardView.provideHint();
-                switch (hintResult) {
-                    case 1: // Success
-                        hintsUsed++;
-                        int hintsRemaining = MAX_HINTS - hintsUsed;
-                        Toast.makeText(this, "Hint provided! You have " + hintsRemaining + " hints left.", Toast.LENGTH_SHORT).show();
-                        break;
-                    case 0: // No cell selected
-                        Toast.makeText(this, "Please select an empty cell to use a hint.", Toast.LENGTH_SHORT).show();
-                        break;
-                    case -1: // Cell already filled
-                        Toast.makeText(this, "Cannot use a hint on a cell that is already filled.", Toast.LENGTH_SHORT).show();
-                        break;
-                    case -2: // Solution not available (error case)
-                        Toast.makeText(this, "Error: Could not retrieve hint.", Toast.LENGTH_SHORT).show();
-                        break;
-                }
-            });
+            hintButton.setOnClickListener(v -> Toast.makeText(this, "Hint (Not Implemented)", Toast.LENGTH_SHORT).show());
         }
+
         if (submitButton != null) {
             submitButton.setOnClickListener(v -> submitPuzzle());
         }
 
+        // Click listener for debug button (already correct)
         if (solveButtonDebug != null) {
             solveButtonDebug.setOnClickListener(v -> {
-                sudokuBoardView.fillSolution();
-                stopTimer();
+                if (sudokuBoardView != null) {
+                    if (sudokuBoardView.hasSolution()) {
+                        sudokuBoardView.fillWithSolution();
+                        stopTimer(); // Stop timer after solving for debug
+                        Toast.makeText(this, "Board solved (DEBUG)", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Solution not available (DEBUG)", Toast.LENGTH_SHORT).show();
+                    }
+                }
             });
         }
     }
 
     private void setupDebugButton() {
+        // This method correctly uses solveButtonDebug and is called from onCreate
         if (solveButtonDebug != null && sudokuBoardView != null) {
             solveButtonDebug.setOnClickListener(v -> {
                 Log.d("GameActivity", "Debug Solve button clicked.");
                 // Use the hasSolution check before attempting to fill
                 if (sudokuBoardView.hasSolution()) {
                     sudokuBoardView.fillWithSolution();
+                    stopTimer(); // Stop timer after solving for debug
                     Toast.makeText(this, "Board filled with solution!", Toast.LENGTH_SHORT).show();
                 } else {
                     Log.w("GameActivity", "Debug Solve: Solution not available.");
@@ -339,18 +335,21 @@ public class GameActivity extends AppCompatActivity {
                     // For simplicity, let's just use the currentPuzzleData if available
 
                     Intent intent = getIntent();
-                    if (intent != null && intent.hasExtra("PUZZLE_DATA")) {
+                    if (intent != null && intent.hasExtra("PUZZLE_DATA")) { // Prioritize original puzzle data if available (e.g., from new game start)
                         PuzzleResponse puzzleData = (PuzzleResponse) intent.getSerializableExtra("PUZZLE_DATA");
                         initialBoard = puzzleData != null ? puzzleData.getBoardString() : null;
-                    } else if (intent != null && intent.hasExtra("EXISTING_GAME_DATA")) {
+                        // If started from puzzle data, solution should be reliable here
+                        solution = puzzleData != null ? puzzleData.getSolutionString() : solution;
+                    } else if (intent != null && intent.hasExtra("EXISTING_GAME_DATA")) { // Fallback to existing game data
                         GameResponse existingGame = (GameResponse) intent.getSerializableExtra("EXISTING_GAME_DATA");
                         initialBoard = (existingGame != null && existingGame.getPuzzle() != null) ? existingGame.getPuzzle().getBoardString() : null;
-                        // Solution should already be stored in currentSolutionString or retrieved via getSolutionStringInternal()
+                        // Use solution stored in the activity (fetched on load)
+                        solution = currentSolutionString;
                     }
 
 
                     if (initialBoard != null && sudokuBoardView != null && timerChronometer != null) {
-                        sudokuBoardView.setBoard(initialBoard, solution); // Reset board
+                        sudokuBoardView.setBoard(initialBoard, solution); // Reset board also resets internal error count
                         timeWhenStopped = 0; // Reset timer state
                         timerChronometer.stop(); // Stop before setting base
                         timerChronometer.setBase(SystemClock.elapsedRealtime()); // Reset base to now
@@ -368,7 +367,6 @@ public class GameActivity extends AppCompatActivity {
 
 
     private void showQuitConfirmation() {
-        // Different message/options for challenges?
         String message = isChallengeGame
                 ? "Quit this challenge attempt? You can accept it again later if it hasn't expired."
                 : "Are you sure you want to quit? Your progress will be saved.";
@@ -380,14 +378,10 @@ public class GameActivity extends AppCompatActivity {
                 .setPositiveButton(positiveButtonText, (dialog, which) -> {
                     stopTimer();
                     if (!isChallengeGame) {
-                        // Only save standard games
-                        callUpdateGameApi(false, 0); // Mark as not completed, score 0
-                        // Finish() called within callUpdateGameApi for standard game quit
+                        callUpdateGameApi(false, 0); // Mark as not completed, save state
                     } else {
-                        // For challenges, just go back to ChallengeActivity (or Home)
-                        // No API call needed to save progress for challenges in current design
-                        Log.d("GameActivity", "Quitting challenge. No save API call needed.");
-                        // Navigate back to Home or Challenges? Home is simpler.
+                        // For challenges, just navigate back home
+                        Log.d("GameActivity", "Quitting challenge. Navigating home.");
                         Intent homeIntent = new Intent(GameActivity.this, HomeActivity.class);
                         homeIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(homeIntent);
@@ -448,14 +442,14 @@ public class GameActivity extends AppCompatActivity {
         long elapsedMillis;
         if (timerChronometer == null) {
             Log.w("GameActivity", "getElapsedTimeSeconds: timerChronometer is null, using timeWhenStopped.");
-            elapsedMillis = timeWhenStopped; // Use last known stopped time
+            elapsedMillis = timeWhenStopped;
         } else if (isPaused) {
-            elapsedMillis = timeWhenStopped; // Use stored time when paused
+            elapsedMillis = timeWhenStopped;
         } else {
             // Calculate current elapsed time if running
             elapsedMillis = SystemClock.elapsedRealtime() - timerChronometer.getBase();
         }
-        return (int) (elapsedMillis / 1000); // Convert ms to seconds
+        return (int) (elapsedMillis / 1000);
     }
 
 
@@ -466,22 +460,20 @@ public class GameActivity extends AppCompatActivity {
         if (sudokuBoardView == null) {
             Log.e("GameActivity", "SudokuBoardView is null, cannot submit.");
             Toast.makeText(this, "Error submitting puzzle.", Toast.LENGTH_SHORT).show();
-            startTimer(); // Resume timer if submission pre-check failed
+            startTimer();
             return;
         }
 
-        // isSolvedCorrectly now handles the null solution case (checks isBoardFull only)
         boolean isSolvedOrFull = sudokuBoardView.isSolvedCorrectly();
-        int errors = sudokuBoardView.getErrorCount(); // Will be 0 if solutionString is null
+        // *** Get the CURRENT error count from the view ***
+        int errors = sudokuBoardView.getErrorCount();
         int timeSeconds = getElapsedTimeSeconds();
 
         if (isSolvedOrFull) {
             if (isChallengeGame) {
-                // Submit challenge result
-                Log.d("GameActivity", "Challenge board is full. Submitting time: " + timeSeconds + "s");
+                Log.d("GameActivity", "Challenge puzzle solved/full. Submitting time: " + timeSeconds + "s");
                 callCompleteChallengeApi(timeSeconds);
             } else {
-                // Submit standard game result
                 String difficulty = (currentDifficulty != null) ? currentDifficulty : "unknown";
                 int finalScore = calculateScore(timeSeconds, errors, difficulty);
                 Log.d("GameActivity", "Standard game solved! Score: " + finalScore + ", Time: " + timeSeconds + "s, Errors: " + errors);
@@ -489,12 +481,11 @@ public class GameActivity extends AppCompatActivity {
                 callUpdateGameApi(true, finalScore);
             }
         } else {
-            // Board is not full or (if solution available) not correct
             String message = sudokuBoardView.hasSolution()
                     ? "Puzzle is not solved correctly or is incomplete. Keep trying!"
                     : "Puzzle is not complete. Keep trying!";
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-            startTimer(); // Resume timer if submission failed
+            startTimer();
         }
     }
 
@@ -503,19 +494,18 @@ public class GameActivity extends AppCompatActivity {
         int baseScore;
         String lowerCaseDifficulty = (difficulty != null) ? difficulty.toLowerCase() : "unknown";
         switch (lowerCaseDifficulty) {
-            case "easy": baseScore = 1500; break; // Increased base scores slightly
+            case "easy": baseScore = 1500; break;
             case "medium": baseScore = 2500; break;
             case "hard": baseScore = 4000; break;
             default: baseScore = 2000; break;
         }
-        // More aggressive time penalty: penalty starts sooner, increases faster
-        int timePenalty = Math.max(0, (timeSeconds - 30) * 2); // Penalty starts after 30s, x2 multiplier
-        int errorPenalty = errors * 100; // Increased error penalty
+        int timePenalty = Math.max(0, (timeSeconds - 30) * 2);
+        int errorPenalty = errors * 100;
 
         Log.d("CalculateScore", "Base: " + baseScore + ", Time: " + timeSeconds + "s -> Penalty: " + timePenalty + ", Errors: " + errors + " -> Penalty: " + errorPenalty);
 
         int finalScore = baseScore - timePenalty - errorPenalty;
-        return Math.max(50, finalScore); // Minimum score slightly higher
+        return Math.max(50, finalScore);
     }
 
     // --- API Calls ---
@@ -527,10 +517,9 @@ public class GameActivity extends AppCompatActivity {
     private void callUpdateGameApi(boolean completed, int score) {
         if (currentGameId == null || currentGameId.isEmpty() || isChallengeGame) {
             Log.e("GameActivity", "Cannot update standard game: Game ID/Challenge ID is missing or this is a challenge.");
-            handleMissingGameId(completed); // Special handling if ID is missing
+            handleMissingGameId(completed);
             return;
         }
-        // Ensure difficulty is set (should be loaded in loadGameData)
         if (currentDifficulty == null || currentDifficulty.isEmpty()) {
             Log.w("GameActivity", "Cannot update game: Difficulty is missing. Setting to 'unknown'.");
             currentDifficulty = "unknown";
@@ -543,22 +532,23 @@ public class GameActivity extends AppCompatActivity {
 
         final int finalScore = score;
         int timeSeconds = getElapsedTimeSeconds();
+        // *** Get the CURRENT error count from the view for saving ***
         int errors = sudokuBoardView.getErrorCount();
         String completedTimestamp = completed ? getTimestamp() : null;
         String currentBoardState = sudokuBoardView.getBoardString();
 
         GameUpdateRequest updateRequest = new GameUpdateRequest();
-        updateRequest.setId(currentGameId); // Use standard Game ID
+        updateRequest.setId(currentGameId);
         updateRequest.setDifficulty(currentDifficulty);
         updateRequest.setWasCompleted(completed);
         updateRequest.setDurationSeconds(timeSeconds);
-        updateRequest.setErrorsMade(errors);
-        updateRequest.setHintsUsed(this.hintsUsed); // Assuming hints not implemented
+        updateRequest.setErrorsMade(errors); // Send current error count
+        updateRequest.setHintsUsed(0);
         updateRequest.setFinalScore(finalScore);
         updateRequest.setCompletedAt(completedTimestamp);
-        updateRequest.setCurrentState(currentBoardState); // Save current state
+        updateRequest.setCurrentState(currentBoardState);
 
-        Log.d("GameActivity", "Updating Standard Game - ID: " + currentGameId + ", Completed: " + completed + ", Score: " + finalScore + ", Time: " + timeSeconds + ", Errors: " + errors + ", State: " + currentBoardState.substring(0, Math.min(20, currentBoardState.length())) + "..."); // Log start of state
+        Log.d("GameActivity", "Updating Standard Game - ID: " + currentGameId + ", Completed: " + completed + ", Score: " + finalScore + ", Time: " + timeSeconds + ", Errors: " + errors + ", State: " + currentBoardState.substring(0, Math.min(20, currentBoardState.length())) + "...");
 
         if (apiService == null) {
             Log.e("GameActivity", "ApiService is null, cannot update game.");
@@ -571,7 +561,7 @@ public class GameActivity extends AppCompatActivity {
         apiService.updateGame(updateRequest).enqueue(new Callback<UpdateResponse>() {
             @Override
             public void onResponse(@NonNull Call<UpdateResponse> call, @NonNull Response<UpdateResponse> response) {
-                showLoading(false," Update Successful.");
+                showLoading(false,"Game update successful.");
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                     handleSuccessfulUpdate(completed, finalScore, timeSeconds);
                 } else {
@@ -580,13 +570,12 @@ public class GameActivity extends AppCompatActivity {
             }
             @Override
             public void onFailure(@NonNull Call<UpdateResponse> call, @NonNull Throwable t) {
-                showLoading(false," Update Failed.");
+                showLoading(false,"Network Error updating game.");
                 handleNetworkFailure(t, completed);
             }
         });
 
-        // Navigate away immediately only if quitting a standard game
-        if (!completed) {
+        if (!completed) { // Only finish immediately if quitting
             Intent homeIntent = new Intent(GameActivity.this, HomeActivity.class);
             homeIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(homeIntent);
@@ -596,51 +585,42 @@ public class GameActivity extends AppCompatActivity {
 
     /**
      * Calls the backend API to complete a challenge.
-     * Called only when the opponent successfully submits a full board.
-     * @param opponentTimeSeconds The time taken by the opponent.
      */
     private void callCompleteChallengeApi(int opponentTimeSeconds) {
         if (currentGameId == null || currentGameId.isEmpty() || !isChallengeGame) {
-            Log.e("GameActivity", "Cannot complete challenge: Challenge ID is missing or this is not a challenge game.");
+            Log.e("GameActivity", "Cannot complete challenge: Invalid ID or not a challenge game.");
             Toast.makeText(this, "Error submitting challenge result (Invalid ID).", Toast.LENGTH_LONG).show();
-            startTimer(); // Resume timer if pre-check fails
+            startTimer();
             return;
         }
         if (apiService == null) {
             Log.e("GameActivity", "ApiService is null, cannot complete challenge.");
-            Toast.makeText(this, "Error submitting challenge result (Network service unavailable).", Toast.LENGTH_LONG).show();
-            startTimer(); // Resume timer
+            Toast.makeText(this, "Error submitting challenge result (Network unavailable).", Toast.LENGTH_LONG).show();
+            startTimer();
             return;
         }
 
         showLoading(true, "Submitting Challenge...");
-
         ChallengeCompleteRequest request = new ChallengeCompleteRequest(opponentTimeSeconds);
-
         Log.d("GameActivity", "Completing Challenge - ID: " + currentGameId + ", Opponent Time: " + opponentTimeSeconds + "s");
 
         apiService.completeChallenge(currentGameId, request).enqueue(new Callback<ChallengeResponse>() {
             @Override
             public void onResponse(@NonNull Call<ChallengeResponse> call, @NonNull Response<ChallengeResponse> response) {
-                showLoading(false," Challenge Submission Successful.");
+                showLoading(false,"Challenge completion successful.");
                 if (response.isSuccessful() && response.body() != null) {
                     ChallengeResponse challengeResult = response.body();
                     Log.d("GameActivity", "Challenge completion successful. Status: " + challengeResult.getStatus() + ", WinnerID: " + challengeResult.getWinnerId());
-                    // Navigate to a specific Challenge Results screen or back home/challenges?
-                    // For now, navigate to standard results screen, passing challenge info if needed
-                    // TODO: Create a dedicated Challenge Results screen?
-                    int fakeScore = calculateScore(opponentTimeSeconds, 0, currentDifficulty); // Calculate score for display
-                    navigateToResults(fakeScore, opponentTimeSeconds); // Navigate to standard results
+                    int errorsMade = sudokuBoardView != null ? sudokuBoardView.getErrorCount() : 0;
+                    int fakeScore = calculateScore(opponentTimeSeconds, errorsMade, currentDifficulty);
+                    navigateToResults(fakeScore, opponentTimeSeconds);
                 } else {
-                    // Handle failed challenge completion API call
                     handleFailedChallengeCompletion(response);
                 }
             }
-
             @Override
             public void onFailure(@NonNull Call<ChallengeResponse> call, @NonNull Throwable t) {
-                showLoading(false," Challenge Submission Failed.");
-                // Handle network failure during challenge completion
+                showLoading(false,"Network Error submitting challenge.");
                 handleNetworkFailureChallenge(t);
             }
         });
@@ -648,7 +628,9 @@ public class GameActivity extends AppCompatActivity {
 
 
     // --- API Response Handling Helpers ---
-
+    // (Keep existing handlers: handleMissingGameId, handleSuccessfulUpdate,
+    //  handleFailedUpdate, handleFailedChallengeCompletion, handleNetworkFailure,
+    //  handleNetworkFailureChallenge, handleApiErrorCondition, parseApiErrorMessage)
     private void handleMissingGameId(boolean completed) {
         // This is specific to standard games
         if (!completed) {
@@ -715,7 +697,7 @@ public class GameActivity extends AppCompatActivity {
         Log.e("GameActivity", "Network Error updating standard game: " + t.getMessage(), t);
         Toast.makeText(GameActivity.this, "Network Error: Could not save progress.", Toast.LENGTH_LONG).show();
         if (completed) {
-            startTimer(); // Resume timer if submitting standard game failed
+            startTimer(); // If submitting standard game failed
         } else {
             Log.w("GameActivity", "Failed to save standard game quit status due to network error, but activity should be finishing anyway.");
             // finish() was called earlier for the standard game quitting case
@@ -749,13 +731,14 @@ public class GameActivity extends AppCompatActivity {
         // Helper to try and extract a meaningful message from error body
         try {
             if (response.errorBody() != null) {
-                String errorBodyStr = response.errorBody().string();
-                // Simplistic check for FastAPI's default detail message format
+                // Important: Clone the error body before reading it
+                okhttp3.ResponseBody errorBody = response.errorBody();
+                String errorBodyStr = errorBody.string();
+                // Now you can work with errorBodyStr
                 if (errorBodyStr.contains("\"detail\":\"")) {
                     String detail = errorBodyStr.split("\"detail\":\"")[1].split("\"")[0];
                     return detail;
                 }
-                // Check for our custom AuthResponse format (less likely in error bodies but possible)
                 else if (errorBodyStr.contains("\"message\":\"")) {
                     String msg = errorBodyStr.split("\"message\":\"")[1].split("\"")[0];
                     return msg;
@@ -765,8 +748,11 @@ public class GameActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e("GameActivity", "Error parsing error body", e);
         }
-        return response.message(); // Fallback to HTTP status message
+        // Fallback if error body is null or parsing failed
+        return response.message() != null ? response.message() : "Unknown error";
     }
+
+
 
     // --- Navigation & Utility ---
 
@@ -775,12 +761,9 @@ public class GameActivity extends AppCompatActivity {
         String timeFormatted = String.format(Locale.getDefault(), "%02d:%02d", timeSeconds / 60, timeSeconds % 60);
         resultsIntent.putExtra(ResultsActivity.KEY_TIME, timeFormatted);
         resultsIntent.putExtra(ResultsActivity.KEY_SCORE, finalScore);
-        resultsIntent.putExtra(ResultsActivity.KEY_TIME_SECONDS, timeSeconds); // Pass raw seconds
-        resultsIntent.putExtra(ResultsActivity.KEY_GAME_ID, currentGameId); // Pass game/challenge ID
-        resultsIntent.putExtra(ResultsActivity.KEY_PUZZLE_ID, currentPuzzleId); // Pass puzzle ID
-
-        // Indicate if it was a challenge result (optional, ResultsActivity might want to know)
-        // resultsIntent.putExtra("IS_CHALLENGE_RESULT", isChallengeGame);
+        resultsIntent.putExtra(ResultsActivity.KEY_TIME_SECONDS, timeSeconds);
+        resultsIntent.putExtra(ResultsActivity.KEY_GAME_ID, currentGameId);
+        resultsIntent.putExtra(ResultsActivity.KEY_PUZZLE_ID, currentPuzzleId);
 
         startActivity(resultsIntent);
         finish(); // Finish GameActivity after navigating to results
