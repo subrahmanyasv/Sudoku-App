@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Relative Path: app/src/main/res/layout/activity_challenge_user_search.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/primary_background"
+    android:fitsSystemWindows="true"
+    tools:context=".ChallengeUserSearchActivity">
+
+    <!-- Toolbar: Dark background matching the theme -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/primary_background"
+        app:title="Challenge a Player"
+        app:navigationIcon="@drawable/ic_arrow_left"
+        app:titleTextColor="@color/text_primary"
+        app:navigationIconTint="@color/text_primary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
+    <!-- Search View: Styled consistently -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/user_search_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        app:queryHint="Search by username..."
+        app:iconifiedByDefault="false"
+        android:background="@drawable/edit_text_background"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark"
+        app:queryBackground="@android:color/transparent"
+        app:submitBackground="@android:color/transparent"/>
+    <!-- queryBackground and submitBackground prevent default lighter backgrounds -->
+
+    <!-- ProgressBar: Centered, ensure it's visible on dark background -->
+    <ProgressBar
+        android:id="@+id/search_progress_bar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:indeterminateTint="@color/button_primary"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <!-- RecyclerView for results -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/user_search_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:clipToPadding="false"
+        tools:listitem="@layout/list_item_user_search" />
+
+</LinearLayout>
+

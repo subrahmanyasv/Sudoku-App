@@ -11,7 +11,7 @@ public class RetrofitClient {
 
     // Use "10.0.2.2" to connect from Android Emulator to localhost
     private static final String BASE_URL = "https://sudokuapp-backend.onrender.com/";
-
+//    private static final String BASE_URL="http://10.0.2.2:3001/";
     private static Retrofit retrofit = null;
     private static ApiService apiService = null; // Cache the ApiService
 
