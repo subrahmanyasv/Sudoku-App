@@ -52,6 +52,10 @@
     <activity
         android:name=".ResultsActivity"
         android:exported="false" />
+        <activity
+            android:name=".ChallengeUserSearchActivity"
+            android:exported="false"
+            android:parentActivityName=".ResultsActivity" /> <!-- Optional: Define parent for Up navigation -->
 
 </application>
 

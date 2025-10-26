@@ -14,6 +14,7 @@ import com.example.sudoku.data.model.ChallengeCompleteRequest;
 import com.example.sudoku.data.model.ChallengeCreateRequest;
 import com.example.sudoku.data.model.ChallengeRespondRequest;
 import com.example.sudoku.data.model.ChallengeResponse;
+import com.example.sudoku.data.model.UserBase;
 
 import java.util.List;
 
@@ -23,6 +24,7 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT; // Import PUT
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ApiService {
 
@@ -83,5 +85,9 @@ public interface ApiService {
             @Path("challenge_id") String challengeId,
             @Body ChallengeCompleteRequest completeRequest
     );
+
+    @GET("/api/user/user_list")
+    Call<List<UserBase>> getUserList(@Query("username") String usernameQuery); // usernameQuery can be null
+
 }
 

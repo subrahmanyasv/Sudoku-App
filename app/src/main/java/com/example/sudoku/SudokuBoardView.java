@@ -1,4 +1,4 @@
-// Relative Path: app/src/main/java/com/example/sudoku/SudokuBoardView.java
+// Sudoku-App/app/src/main/java/com/example/sudoku/SudokuBoardView.java
 package com.example.sudoku;
 
 import android.content.Context;
@@ -43,58 +43,56 @@ public class SudokuBoardView extends View {
 
     private void init() {
         thickLinePaint = new Paint();
-        thickLinePaint.setColor(Color.parseColor("#64748b")); // board_line_thick from colors.xml
-        thickLinePaint.setStrokeWidth(6f); // Slightly thicker for 3x3 box lines
+        thickLinePaint.setColor(Color.parseColor("#4A5568")); // Use color from theme if possible
+        thickLinePaint.setStrokeWidth(6f);
         thickLinePaint.setStyle(Paint.Style.STROKE);
         thickLinePaint.setAntiAlias(true);
 
         thinLinePaint = new Paint();
-        thinLinePaint.setColor(Color.parseColor("#475569")); // board_line_thin from colors.xml
-        thinLinePaint.setStrokeWidth(2f); // Thinner for inner lines
+        thinLinePaint.setColor(Color.parseColor("#2D3748")); // Use color from theme if possible
+        thinLinePaint.setStrokeWidth(2f);
         thinLinePaint.setStyle(Paint.Style.STROKE);
         thinLinePaint.setAntiAlias(true);
 
         textPaint = new Paint();
-        textPaint.setColor(Color.parseColor("#e2e8f0")); // board_text_starting from colors.xml
-        textPaint.setTextSize(64f); // Initial size, adjusted in onMeasure
+        textPaint.setColor(Color.parseColor("#E2E8F0")); // Off-white (text_primary)
+        textPaint.setTextSize(64f); // Will be adjusted in onMeasure
         textPaint.setTextAlign(Paint.Align.CENTER);
         textPaint.setAntiAlias(true);
-        textPaint.setFakeBoldText(true); // Make starting numbers bold
 
         userTextPaint = new Paint();
-        userTextPaint.setColor(Color.parseColor("#67e8f9")); // board_text_user from colors.xml
-        userTextPaint.setTextSize(64f); // Initial size, adjusted in onMeasure
+        userTextPaint.setColor(Color.parseColor("#63B3ED")); // Sudoku blue (board_text_user?)
+        userTextPaint.setTextSize(64f); // Will be adjusted in onMeasure
         userTextPaint.setTextAlign(Paint.Align.CENTER);
         userTextPaint.setAntiAlias(true);
 
         selectedCellPaint = new Paint();
-        selectedCellPaint.setColor(Color.parseColor("#0e7490")); // board_cell_selected from colors.xml
-        // selectedCellPaint.setAlpha(100); // Alpha can be adjusted or removed
+        selectedCellPaint.setColor(Color.parseColor("#0E7490")); // Dark Cyan (board_cell_selected)
+        selectedCellPaint.setAlpha(100); // Adjust alpha as needed
         selectedCellPaint.setStyle(Paint.Style.FILL);
 
         relatedCellHighlightPaint = new Paint();
-        relatedCellHighlightPaint.setColor(Color.parseColor("#475569")); // board_cell_related from colors.xml
-        // relatedCellHighlightPaint.setAlpha(80); // Alpha can be adjusted or removed
+        relatedCellHighlightPaint.setColor(Color.parseColor("#475569")); // Secondary button color (board_cell_related)
+        relatedCellHighlightPaint.setAlpha(80); // Adjust alpha as needed
         relatedCellHighlightPaint.setStyle(Paint.Style.FILL);
 
         sameNumberHighlightPaint = new Paint();
-        sameNumberHighlightPaint.setColor(Color.parseColor("#38bdf8")); // board_cell_same_number from colors.xml
-        // sameNumberHighlightPaint.setAlpha(90); // Alpha can be adjusted or removed
+        sameNumberHighlightPaint.setColor(Color.parseColor("#38BDF8")); // Light Blue (board_cell_same_number)
+        sameNumberHighlightPaint.setAlpha(90); // Adjust alpha as needed
         sameNumberHighlightPaint.setStyle(Paint.Style.FILL);
 
-        // This paint is primarily for the text color of wrong numbers
-        errorTextPaint = new Paint();
-        errorTextPaint.setColor(Color.parseColor("#fb7185")); // board_text_error from colors.xml
-        errorTextPaint.setTextSize(64f); // Initial size, adjusted in onMeasure
+        // Optional paint if highlighting the cell background for conflict
+        conflictingCellPaint = new Paint();
+        conflictingCellPaint.setColor(Color.parseColor("#F87171")); // Red (text_error)
+        conflictingCellPaint.setAlpha(100);
+        conflictingCellPaint.setStyle(Paint.Style.FILL);
+
+        errorTextPaint = new Paint(); // Used for drawing the number itself in red
+        errorTextPaint.setColor(Color.parseColor("#FB7185")); // Rose (board_text_error)
+        errorTextPaint.setTextSize(64f); // Will be adjusted in onMeasure
         errorTextPaint.setTextAlign(Paint.Align.CENTER);
         errorTextPaint.setAntiAlias(true);
-        errorTextPaint.setFakeBoldText(true); // Make errors stand out
-
-        // Optional: Paint for RED background on incorrect cell (conflictingCellPaint)
-        // conflictingCellPaint = new Paint();
-        // conflictingCellPaint.setColor(Color.parseColor("#fb7185")); // board_text_error color
-        // conflictingCellPaint.setAlpha(100);
-        // conflictingCellPaint.setStyle(Paint.Style.FILL);
+        errorTextPaint.setFakeBoldText(true);
     }
 
     @Override
@@ -102,11 +100,11 @@ public class SudokuBoardView extends View {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int size = Math.min(getMeasuredWidth(), getMeasuredHeight());
         // Adjust text size based on cell size dynamically
-        float dynamicTextSize = size / 9f * 0.6f; // Reduced multiplier for better fit
+        float dynamicTextSize = size / 9f * 0.7f; // Make text slightly smaller than cell height
         textPaint.setTextSize(dynamicTextSize);
         userTextPaint.setTextSize(dynamicTextSize);
         errorTextPaint.setTextSize(dynamicTextSize);
-        setMeasuredDimension(size, size);
+        setMeasuredDimension(size, size); // Make the view square
     }
 
     @Override
@@ -117,34 +115,31 @@ public class SudokuBoardView extends View {
         drawNumbers(canvas);    // Draw numbers on top
     }
 
-    /**
-     * Sets the initial board state and the solution string.
-     * Clears previous state, errors, and selection.
-     * @param boardString 81-char string ('0'-'9'), initial puzzle state.
-     * @param solution    81-char string ('1'-'9'), the full solution. Can be null for challenges.
-     */
+    // Method to set the board from string, called when a new game starts OR restarts
     public void setBoard(String boardString, String solution) {
-        // Allow solution to be null, but boardString must be valid
+        // Basic validation
         if (boardString == null || boardString.length() != 81) {
             Log.e("SudokuBoardView", "Invalid board string provided.");
-            // Initialize empty board
+            // Reset board state
             board = new int[9][9];
             isStartingCell = new boolean[9][9];
-            solutionString = null; // Clear solution
-            errorCount = 0; // Reset errors
-            selectedRow = -1; // Reset selection
+            solutionString = null;
+            errorCount = 0; // Reset error count
+            selectedRow = -1;
             selectedCol = -1;
-            invalidate(); // Redraw empty board
+            invalidate(); // Redraw with empty board
             return;
         }
 
-        // Validate solution string if provided
+        // Validate solution string (can be null for challenges after modification)
         if (solution != null && solution.length() != 81) {
             Log.w("SudokuBoardView", "Invalid solution string provided. Proceeding without solution validation.");
             this.solutionString = null; // Treat invalid solution as null
         } else {
-            this.solutionString = solution; // Store the valid (or null) solution
+            this.solutionString = solution;
+            Log.d("SudokuBoardView", "Board set. Solution is " + (this.solutionString != null ? "available." : "not available."));
         }
+
 
         int k = 0;
         for (int i = 0; i < 9; i++) {
@@ -154,22 +149,21 @@ public class SudokuBoardView extends View {
                     board[i][j] = c - '0';
                     isStartingCell[i][j] = true;
                 } else {
-                    board[i][j] = 0; // Use 0 for empty cells
+                    board[i][j] = 0;
                     isStartingCell[i][j] = false;
                 }
             }
         }
-        errorCount = 0; // Reset error count for new board
-        selectedRow = -1; // Reset selection
+        // Reset state for a new/restarted board
+        errorCount = 0;
+        selectedRow = -1;
         selectedCol = -1;
-        invalidate(); // Redraw the board
-        Log.d("SudokuBoardView", "Board set. Solution is " + (this.solutionString != null ? "available." : "NOT available (Challenge?)."));
+        invalidate(); // Trigger redraw
     }
 
     /**
      * Loads a saved game state (current board) onto the view.
-     * Assumes setBoard() was called previously with the initial puzzle to set isStartingCell correctly.
-     * Requires the solution string to be available for error checking.
+     * Assumes setBoard() was called previously with the initial puzzle.
      * @param stateString The 81-character string representing the saved state ('0' for empty).
      */
     public void loadCurrentState(String stateString) {
@@ -177,18 +171,16 @@ public class SudokuBoardView extends View {
             Log.e("SudokuBoardView", "Invalid current state string provided for loading.");
             return; // Don't modify the board if state is invalid
         }
-        // *** MODIFIED: Allow loading even if solutionString is null, skip error check ***
-        if (solutionString == null) {
-            Log.w("SudokuBoardView", "Loading state, but solution string is null. Error count will not be recalculated.");
-        } else if (solutionString.length() != 81) {
-            Log.e("SudokuBoardView", "Cannot load state: Invalid internal solution string length.");
-            return;
-        }
-
+        // Solution should already be set via setBoard() before calling this
 
         Log.d("SudokuBoardView", "Loading state: " + stateString);
         int k = 0;
-        errorCount = 0; // Reset error count when loading state
+        // *** DO NOT reset errorCount here - it will be set externally ***
+        // errorCount = 0;
+
+        // Recalculate errors purely based on loaded state (for logging/comparison if needed)
+        int recalculatedErrors = 0;
+
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
                 char c = stateString.charAt(k++);
@@ -196,23 +188,20 @@ public class SudokuBoardView extends View {
                     if (c >= '1' && c <= '9') {
                         int num = c - '0';
                         board[i][j] = num;
-                        // Recalculate errors based on loaded state ONLY IF solution is available
-                        if (solutionString != null && (solutionString.charAt(i * 9 + j) - '0') != num) {
-                            errorCount++;
+                        // Recalculate errors based on loaded state if solution is available
+                        if (hasSolution()) {
+                            if (solutionString.charAt(i * 9 + j) - '0' != num) {
+                                recalculatedErrors++;
+                            }
                         }
                     } else {
                         board[i][j] = 0; // Set empty if '0'
                     }
                 }
-                // Ensure starting cells from setBoard() are preserved
-                else if (board[i][j] == 0 && c >= '1' && c <= '9') {
-                    Log.w("SudokuBoardView", "Attempting to restore starting cell at (" + i + "," + j + ") during loadState.");
-                    board[i][j] = c - '0';
-                    isStartingCell[i][j] = true;
-                }
             }
         }
-        Log.d("SudokuBoardView", "State loaded. Recalculated error count: " + errorCount);
+        // Log the recalculated count, but don't overwrite the actual errorCount
+        Log.d("SudokuBoardView", "State loaded. Recalculated error count based *only* on loaded state: " + recalculatedErrors);
         invalidate(); // Redraw with loaded state
     }
 
@@ -221,20 +210,15 @@ public class SudokuBoardView extends View {
         float size = getWidth();
         float cellSize = size / 9f;
 
-        // Draw thin lines first
+        // Draw vertical lines
         for (int i = 0; i <= 9; i++) {
-            if (i % 3 != 0) { // Only draw thin lines
-                canvas.drawLine(i * cellSize, 0, i * cellSize, size, thinLinePaint); // Vertical
-                canvas.drawLine(0, i * cellSize, size, i * cellSize, thinLinePaint); // Horizontal
-            }
+            Paint paint = (i % 3 == 0) ? thickLinePaint : thinLinePaint;
+            canvas.drawLine(i * cellSize, 0, i * cellSize, size, paint);
         }
-
-        // Draw thick lines on top
+        // Draw horizontal lines
         for (int i = 0; i <= 9; i++) {
-            if (i % 3 == 0) { // Only draw thick lines
-                canvas.drawLine(i * cellSize, 0, i * cellSize, size, thickLinePaint); // Vertical
-                canvas.drawLine(0, i * cellSize, size, i * cellSize, thickLinePaint); // Horizontal
-            }
+            Paint paint = (i % 3 == 0) ? thickLinePaint : thinLinePaint;
+            canvas.drawLine(0, i * cellSize, size, i * cellSize, paint);
         }
     }
 
@@ -245,27 +229,27 @@ public class SudokuBoardView extends View {
 
         for (int row = 0; row < 9; row++) {
             for (int col = 0; col < 9; col++) {
-                if (board[row][col] != 0) { // Check if cell is not empty
+                if (board[row][col] != 0) {
                     String text = String.valueOf(board[row][col]);
                     Paint currentPaint;
 
+                    // Determine which paint to use
                     if (isStartingCell[row][col]) {
-                        currentPaint = textPaint; // Bold, primary color for starting numbers
+                        currentPaint = textPaint; // Original puzzle numbers
                     } else {
-                        // Check against solution only if solutionString is available
-                        if (solutionString != null &&
-                                (solutionString.charAt(row * 9 + col) - '0') != board[row][col]) {
-                            currentPaint = errorTextPaint; // Red, bold for incorrect user numbers
+                        // Check against solution ONLY if solution is available
+                        if (hasSolution() && solutionString.charAt(row * 9 + col) - '0' != board[row][col]) {
+                            currentPaint = errorTextPaint; // Incorrect user number
                         } else {
-                            currentPaint = userTextPaint; // Accent color for correct user numbers (or if no solution)
+                            currentPaint = userTextPaint; // Correct or unvalidated user number
                         }
                     }
 
-                    // Calculate text position for centering
+                    // Calculate position to center text in the cell
                     currentPaint.getTextBounds(text, 0, text.length(), textBounds);
                     float x = col * cellSize + cellSize / 2;
-                    // Adjust y slightly higher for better vertical centering within cell
-                    float y = row * cellSize + cellSize / 2 + textBounds.height() / 2f - textBounds.bottom;
+                    // Adjust y-position for vertical centering
+                    float y = row * cellSize + cellSize / 2 + textBounds.height() / 2f - textBounds.bottom; // Corrected calculation
 
                     canvas.drawText(text, x, y, currentPaint);
                 }
@@ -275,48 +259,50 @@ public class SudokuBoardView extends View {
 
 
     private void drawHighlights(Canvas canvas) {
-        if (selectedRow == -1 || selectedCol == -1) return; // No selection, no highlights
+        if (selectedRow == -1 || selectedCol == -1) return;
 
         float size = getWidth();
         float cellSize = size / 9f;
-        int selectedValue = board[selectedRow][selectedCol]; // Value in the selected cell
+        int selectedValue = board[selectedRow][selectedCol];
 
-        // 1. Highlight related row, column, and 3x3 box
+        // Highlight row, column, and 3x3 box
         int boxStartRow = selectedRow - selectedRow % 3;
         int boxStartCol = selectedCol - selectedCol % 3;
-        // Use a slightly lighter/different color for row/col/box highlights
-        Paint relatedHighlight = relatedCellHighlightPaint; // You defined this in init()
+
         for (int i = 0; i < 9; i++) {
-            // Highlight Row i (excluding selected cell itself later)
-            canvas.drawRect(i * cellSize, selectedRow * cellSize, (i + 1) * cellSize, (selectedRow + 1) * cellSize, relatedHighlight);
-            // Highlight Column i (excluding selected cell itself later)
-            canvas.drawRect(selectedCol * cellSize, i * cellSize, (selectedCol + 1) * cellSize, (i + 1) * cellSize, relatedHighlight);
+            // Highlight row i
+            canvas.drawRect(i * cellSize, selectedRow * cellSize, (i + 1) * cellSize, (selectedRow + 1) * cellSize, relatedCellHighlightPaint);
+            // Highlight column i
+            canvas.drawRect(selectedCol * cellSize, i * cellSize, (selectedCol + 1) * cellSize, (i + 1) * cellSize, relatedCellHighlightPaint);
         }
-        // Highlight 3x3 Box (Overlapping is okay)
+        // Highlight 3x3 box (this will overlap row/col highlights, which is fine)
         for (int r = boxStartRow; r < boxStartRow + 3; r++) {
             for (int c = boxStartCol; c < boxStartCol + 3; c++) {
-                canvas.drawRect(c * cellSize, r * cellSize, (c + 1) * cellSize, (r + 1) * cellSize, relatedHighlight);
+                canvas.drawRect(c * cellSize, r * cellSize, (c + 1) * cellSize, (r + 1) * cellSize, relatedCellHighlightPaint);
             }
         }
 
-        // 2. Highlight cells with the same number as the selected cell (if selected cell is not empty)
+        // Highlight cells with the same number as the selected cell (if selected cell is not empty)
         if (selectedValue != 0) {
-            Paint sameNumHighlight = sameNumberHighlightPaint; // Defined in init()
             for (int r = 0; r < 9; r++) {
                 for (int c = 0; c < 9; c++) {
-                    // Don't highlight the selected cell itself with this color
-                    if (board[r][c] == selectedValue && !(r == selectedRow && c == selectedCol)) {
-                        canvas.drawRect(c * cellSize, r * cellSize, (c + 1) * cellSize, (r + 1) * cellSize, sameNumHighlight);
+                    if (board[r][c] == selectedValue) {
+                        canvas.drawRect(c * cellSize, r * cellSize, (c + 1) * cellSize, (r + 1) * cellSize, sameNumberHighlightPaint);
                     }
                 }
             }
         }
 
-        // 3. Draw the main selected cell highlight (drawn last to be distinctly on top)
+        // Highlight the selected cell itself (drawn last to be on top)
         float left = selectedCol * cellSize;
         float top = selectedRow * cellSize;
-        Paint selectHighlight = selectedCellPaint; // Defined in init()
-        canvas.drawRect(left, top, left + cellSize, top + cellSize, selectHighlight);
+        canvas.drawRect(left, top, left + cellSize, top + cellSize, selectedCellPaint);
+
+        // Optionally, highlight conflicting cell background (if selected cell has an error)
+        if (hasSolution() && !isStartingCell[selectedRow][selectedCol] && selectedValue != 0 &&
+                solutionString.charAt(selectedRow * 9 + selectedCol) - '0' != selectedValue) {
+            canvas.drawRect(left, top, left + cellSize, top + cellSize, conflictingCellPaint); // Red background tint
+        }
     }
 
 
@@ -328,23 +314,27 @@ public class SudokuBoardView extends View {
             float size = getWidth();
             float cellSize = size / 9f;
 
+            // Calculate column and row based on touch position
             int col = (int) (x / cellSize);
             int row = (int) (y / cellSize);
 
+            // Ensure touch is within grid bounds
             if (col >= 0 && col < 9 && row >= 0 && row < 9) {
+                // Check if the selected cell changed
                 if (row != selectedRow || col != selectedCol) {
                     selectedCol = col;
                     selectedRow = row;
-                    invalidate();
+                    invalidate(); // Trigger redraw with new highlights
                 }
-                return true;
+                return true; // Consume the event
             } else {
+                // If touch is outside the grid, deselect
                 if (selectedRow != -1 || selectedCol != -1) {
                     selectedRow = -1;
                     selectedCol = -1;
-                    invalidate();
+                    invalidate(); // Trigger redraw without highlights
                 }
-                return false;
+                return false; // Don't consume if outside grid and nothing was selected
             }
         }
         return super.onTouchEvent(event);
@@ -357,31 +347,39 @@ public class SudokuBoardView extends View {
                 Toast.makeText(getContext(), "Cannot change starting numbers.", Toast.LENGTH_SHORT).show();
             } else {
                 int previousValue = board[selectedRow][selectedCol];
+                // Only proceed if the number is actually different
                 if (previousValue == number) return;
 
-                boolean errorStateChanged = false;
-                // Only track errors if solution is available
-                if (solutionString != null) {
+                // --- Error Tracking Logic ---
+                // Only track errors if the solution is available
+                if (hasSolution()) {
                     int correctValue = solutionString.charAt(selectedRow * 9 + selectedCol) - '0';
-                    boolean wasCorrectBefore = (previousValue != 0 && previousValue == correctValue);
-                    boolean isCorrectNow = (number != 0 && number == correctValue);
+                    boolean wasCorrect = (previousValue != 0 && previousValue == correctValue);
+                    boolean isNowCorrect = (number == correctValue);
 
-                    if (!isCorrectNow && number != 0 && (previousValue == 0 || wasCorrectBefore)) {
-                        errorCount++;
-                        errorStateChanged = true;
-                        Log.d("SudokuError", "Incorrect number (" + number + ") placed at (" + selectedRow + "," + selectedCol + "). Error count: " + errorCount);
+                    // Increment error count only if placing an incorrect number
+                    // where the cell was previously empty or correct.
+                    if (number != 0 && !isNowCorrect) {
+                        if (previousValue == 0 || wasCorrect) {
+                            errorCount++;
+                            Log.d("SudokuError", String.format("Incorrect number %d placed at (%d, %d). Correct: %d. Error count: %d",
+                                    number, selectedRow, selectedCol, correctValue, errorCount));
+                        } else {
+                            // Replacing one error with another - no change in error count
+                            Log.d("SudokuError", String.format("Replaced incorrect number %d with %d at (%d, %d). Correct: %d. Error count remains: %d",
+                                    previousValue, number, selectedRow, selectedCol, correctValue, errorCount));
+                        }
                     }
-                    else if (!wasCorrectBefore && previousValue != 0 && (isCorrectNow || number == 0)) {
-                        Log.d("SudokuError", "Incorrect number ("+ previousValue +") corrected/removed at ("+ selectedRow + ","+ selectedCol +"). Error count remains: " + errorCount);
-                        errorStateChanged = true; // Visual state changed
-                    } else if (wasCorrectBefore && !isCorrectNow && number !=0 ){
-                        Log.d("SudokuError", "Correct number ("+ previousValue +") replaced by incorrect ("+ number +") at ("+ selectedRow + ","+ selectedCol +"). Error count: " + errorCount);
-                        // Need to increment here because a correct number became incorrect
-                        errorCount++;
-                        errorStateChanged = true;
+                    // If placing a correct number where it was previously incorrect,
+                    // the error count remains (errors are cumulative for the game session).
+                    else if (number != 0 && isNowCorrect && !wasCorrect && previousValue != 0) {
+                        Log.d("SudokuError", String.format("Corrected cell (%d, %d) with %d. Error count remains: %d",
+                                selectedRow, selectedCol, number, errorCount));
                     }
                 }
+                // --- End Error Tracking ---
 
+                // Update the board and redraw
                 board[selectedRow][selectedCol] = number;
                 invalidate();
             }
@@ -398,15 +396,9 @@ public class SudokuBoardView extends View {
             } else {
                 int previousValue = board[selectedRow][selectedCol];
                 if (previousValue != 0) {
-                    // Log if erasing an incorrect number (only if solution available)
-                    if (solutionString != null) {
-                        int correctValue = solutionString.charAt(selectedRow * 9 + selectedCol) - '0';
-                        if (previousValue != correctValue) {
-                            Log.d("SudokuError", "Incorrect number ("+ previousValue +") erased at ("+ selectedRow + ","+ selectedCol +"). Error count remains: " + errorCount);
-                        }
-                    }
-                    board[selectedRow][selectedCol] = 0; // Set cell to empty
-                    invalidate(); // Redraw the board
+                    // Erasing a number doesn't reduce the historical error count for the game.
+                    board[selectedRow][selectedCol] = 0; // Set to empty
+                    invalidate(); // Redraw
                 }
             }
         } else {
@@ -414,46 +406,8 @@ public class SudokuBoardView extends View {
         }
     }
 
-    /**
-     * Fills all non-starting cells with the correct solution numbers.
-     * Intended for development/testing purposes only. Requires solutionString to be set.
-     */
-    public void fillWithSolution() {
-        if (!hasSolution()) { // Use the new helper method
-            Log.e("SudokuBoardView", "Cannot fill with solution: Solution string is missing or invalid.");
-            Toast.makeText(getContext(), "Solution not available.", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
-        int k = 0;
-        boolean changed = false; // Track if any cell was changed
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                if (!isStartingCell[i][j]) { // Only fill non-starting cells
-                    char correctChar = solutionString.charAt(k);
-                    int correctNum = 0;
-                    if (correctChar >= '1' && correctChar <= '9') {
-                        correctNum = correctChar - '0';
-                    }
-                    // Only update if the current value is different
-                    if (board[i][j] != correctNum) {
-                        board[i][j] = correctNum;
-                        changed = true;
-                    }
-                }
-                k++; // Increment index regardless
-            }
-        }
-        if (changed) {
-            errorCount = 0; // Reset error count as the board is now correct
-            invalidate(); // Redraw the board with the solution filled in
-        } else {
-            Toast.makeText(getContext(), "Board already matches solution.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-
-    // Returns the current state of the board as a 2D array
+    // Returns the current state of the board as a 2D array (defensive copy)
     public int[][] getBoardState() {
         int[][] copy = new int[9][9];
         for (int i = 0; i < 9; i++) {
@@ -473,100 +427,87 @@ public class SudokuBoardView extends View {
         return sb.toString();
     }
 
-    /**
-     * Checks if the current board state matches the solution string (if available)
-     * AND if the board is completely filled.
-     * If solutionString is null, it only checks if the board is full.
-     * @return true if the board is correctly solved or full (if no solution available), false otherwise.
-     */
+    // Checks if the current board state matches the solution string
     public boolean isSolvedCorrectly() {
         boolean isFull = isBoardFull();
-        if (solutionString == null) {
-            // No solution to check against (challenge mode), just check if full
-            Log.d("SudokuBoardView", "isSolvedCorrectly: No solution available, checking if full: " + isFull);
+        if (!hasSolution()) {
+            // If no solution available (challenge mode), "correct" means "full"
+            Log.d("SudokuBoardView", "isSolvedCorrectly: Solution not available. Is full: " + isFull);
             return isFull;
         }
-        // Solution is available, check if full AND matches solution
-        boolean matchesSolution = getBoardString().equals(solutionString);
-        Log.d("SudokuBoardView", "isSolvedCorrectly: Solution available. Is full: " + isFull + ", Matches solution: " + matchesSolution);
-        return isFull && matchesSolution;
+        // If solution is available, check if full AND matches solution
+        boolean matches = getBoardString().equals(solutionString);
+        Log.d("SudokuBoardView", "isSolvedCorrectly: Solution available. Is full: " + isFull + ", Matches solution: " + matches);
+        return isFull && matches;
     }
+
 
     // Checks if all cells on the board are filled (non-zero)
     public boolean isBoardFull() {
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
-                if (board[i][j] == 0) { // 0 represents an empty cell
-                    return false;
+                if (board[i][j] == 0) {
+                    return false; // Found an empty cell
                 }
             }
         }
-        return true;
+        return true; // No empty cells found
     }
 
-    // *** ADDED HELPER METHOD ***
     /**
-     * Checks if the board currently has a valid solution string loaded.
-     * @return true if solutionString is not null and has the correct length, false otherwise.
+     * Fills the non-starting cells with the correct solution. (DEBUG METHOD)
      */
-    public boolean hasSolution() {
-        return this.solutionString != null && this.solutionString.length() == 81;
-    }
-
-    // *** ADDED HELPER METHOD ***
-    /**
-     * Internal getter for the solution string, used by GameActivity for restart.
-     * @return The stored solution string (can be null).
-     */
-    protected String getSolutionStringInternal() {
-        return this.solutionString;
-    }
-
-
-    public int getErrorCount() {
-        // Return error count only if solution is available to calculate it accurately
-        return (solutionString != null) ? errorCount : 0;
-    }
-
-    public int provideHint() {
-        if (selectedRow == -1 || selectedCol == -1) {
-            return 0;
-        }
-
-        if (isStartingCell[selectedRow][selectedCol] || board[selectedRow][selectedCol] != 0) {
-            return -1;
-        }
-
-        if (solutionString == null) {
-            Log.e("SudokuBoardView", "Cannot provide hint, solutionString is null.");
-            return -2;
-        }
-
-        int correctValue = solutionString.charAt(selectedRow * 9 + selectedCol) - '0';
-        board[selectedRow][selectedCol] = correctValue;
-
-        // Deselect the cell after providing the hint to avoid accidental erase
-         selectedRow = -1;
-         selectedCol = -1;
-        invalidate();
-        return 1;
-    }
-
-
-    //Function to automatically fill the game with the solution.
-    //Used only for testing and debugging.
-    public void fillSolution() {
-        if (solutionString == null) {
-            Log.e("SudokuBoardView", "Cannot fill solution, solutionString is null.");
-            Toast.makeText(getContext(), "Error: Solution not available.", Toast.LENGTH_SHORT).show();
+    public void fillWithSolution() {
+        if (!hasSolution()) {
+            Log.w("SudokuBoardView", "fillWithSolution called but no solution is available.");
             return;
         }
-        loadCurrentState(solutionString);
-        selectedRow = -1;
-        selectedCol = -1;
+        Log.d("SudokuBoardView", "Filling board with solution (DEBUG).");
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (!isStartingCell[i][j]) { // Only fill user cells
+                    board[i][j] = solutionString.charAt(i * 9 + j) - '0';
+                }
+            }
+        }
+        errorCount = 0; // Reset errors when explicitly solving
+        invalidate(); // Redraw with solution filled
+    }
 
-        invalidate();
-        Log.d("SudokuBoardView", "Debug: Board filled with solution.");
+    /**
+     * Checks if a valid solution string is currently loaded.
+     * @return true if a solution is available, false otherwise.
+     */
+    public boolean hasSolution() {
+        return solutionString != null && solutionString.length() == 81;
+    }
+
+    /**
+     * Provides internal access to the solution string (e.g., for restarting).
+     * @return The solution string, or null if not available.
+     */
+    protected String getSolutionStringInternal() {
+        return solutionString;
+    }
+
+
+    /**
+     * Gets the current cumulative error count for this game session.
+     * Returns 0 if the solution is not available (e.g., during challenges).
+     * @return The number of incorrect placements made.
+     */
+    public int getErrorCount() {
+        // Return 0 if we can't validate against a solution
+        return hasSolution() ? errorCount : 0;
+    }
+
+    /**
+     * *** ADDED: Method to externally set the error count (used when loading a game) ***
+     * @param count The error count loaded from saved state.
+     */
+    public void setErrorCount(int count) {
+        this.errorCount = Math.max(0, count); // Ensure count is not negative
+        Log.d("SudokuBoardView", "Error count externally set to: " + this.errorCount);
     }
 
 }
