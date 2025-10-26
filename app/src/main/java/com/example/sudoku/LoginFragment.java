@@ -1,4 +1,4 @@
-// Relative Path: Sudoku-App/app/src/main/java/com/example/sudoku/LoginFragment.java
+// Relative Path: app/src/main/java/com/example/sudoku/LoginFragment.java
 package com.example.sudoku;
 
 import android.content.Intent;
@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -73,33 +74,37 @@ public class LoginFragment extends Fragment {
         loginTitle.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                // Add a check to ensure the view observer is alive
+                // Check if the view is still attached before removing listener
                 if (loginTitle.getViewTreeObserver().isAlive()) {
-                    loginTitle.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                    applyGradientToText(loginTitle);
+                    try {
+                        loginTitle.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        applyGradientToText(loginTitle);
+                    } catch (IllegalStateException e) {
+                        Log.e("LoginFragment", "Error removing layout listener", e);
+                    }
                 }
             }
         });
 
+
         // Handle navigation to RegisterFragment
         showRegister.setOnClickListener(v -> {
-            if (getParentFragmentManager() != null) {
-                getParentFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new RegisterFragment())
-                        .addToBackStack(null)
-                        .commit();
-            }
+            // Use getParentFragmentManager() for fragment transactions within an activity
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new RegisterFragment())
+                    .addToBackStack(null) // Allows user to press back to return to login
+                    .commit();
         });
+
 
         // Handle navigation to ForgotPasswordFragment
         forgotPassword.setOnClickListener(v -> {
-            if (getParentFragmentManager() != null) {
-                getParentFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new ForgotPasswordFragment())
-                        .addToBackStack(null)
-                        .commit();
-            }
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new ForgotPasswordFragment())
+                    .addToBackStack(null) // Allows user to press back
+                    .commit();
         });
+
 
         // Handle login button click with API call
         loginButton.setOnClickListener(v -> {
@@ -107,21 +112,40 @@ public class LoginFragment extends Fragment {
         });
 
         // Safer way to color "Register here"
-        String text = "New challenger? Register here";
+        String text = showRegister.getText().toString(); // Get text dynamically
         SpannableString spannableString = new SpannableString(text);
         String targetText = "Register here";
         int start = text.indexOf(targetText);
-        int end = start + targetText.length();
 
         if (start != -1) { // Check if the target text was found
-            ForegroundColorSpan fcs = new ForegroundColorSpan(Color.parseColor("#00FFD1"));
-            spannableString.setSpan(fcs, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            int end = start + targetText.length();
+            try {
+                // Use color resource for better theme support
+                int color = ContextCompat.getColor(requireContext(), R.color.button_primary); // Or your accent color
+                ForegroundColorSpan fcs = new ForegroundColorSpan(color);
+                spannableString.setSpan(fcs, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } catch (Exception e) {
+                Log.e("LoginFragment", "Error applying color span", e);
+                // Fallback if color resource fails
+                try {
+                    ForegroundColorSpan fcsFallback = new ForegroundColorSpan(Color.parseColor("#00FFD1"));
+                    spannableString.setSpan(fcsFallback, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                } catch (IllegalArgumentException iae) {
+                    Log.e("LoginFragment", "Fallback color parsing failed", iae);
+                }
+            }
         }
-
         showRegister.setText(spannableString);
     }
 
+
     private void handleLogin() {
+        // Ensure fragment is attached before accessing context or inputs
+        if (!isAdded() || getContext() == null) {
+            Log.w("LoginFragment", "handleLogin called when fragment not attached.");
+            return;
+        }
+
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
 
@@ -131,61 +155,93 @@ public class LoginFragment extends Fragment {
             return;
         }
 
+        // --- ADDED: Email format validation ---
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(getContext(), "Please enter a valid email address", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // Show loading state (e.g., disable button)
         loginButton.setEnabled(false);
         loginButton.setText("Logging in...");
 
         // Create API request
-        // Use requireContext() for safer context retrieval
         ApiService apiService = RetrofitClient.getApiService(requireContext());
         LoginRequest loginRequest = new LoginRequest(email, password);
+
+        Log.d("LoginFragment", "Attempting login for email: " + email); // Log attempt
+
         Call<AuthResponse> call = apiService.loginUser(loginRequest);
 
         call.enqueue(new Callback<AuthResponse>() {
             @Override
-            public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
+            public void onResponse(@NonNull Call<AuthResponse> call, @NonNull Response<AuthResponse> response) {
+                // Ensure fragment is still attached before updating UI
+                if (!isAdded() || getContext() == null) return;
+
                 // Re-enable button
                 loginButton.setEnabled(true);
                 loginButton.setText("Login");
 
                 if (response.isSuccessful() && response.body() != null) {
                     AuthResponse authResponse = response.body();
-                    if ("success".equals(authResponse.getStatus()) && authResponse.getToken() != null) {
-                        // --- SUCCESS ---
-                        Log.d("LoginSuccess", "Token: " + authResponse.getToken());
+                    // *** MODIFIED: Check for userId as well ***
+                    if ("success".equals(authResponse.getStatus()) && authResponse.getToken() != null && authResponse.getUserId() != null) {
+                        Log.d("LoginSuccess", "Token: " + authResponse.getToken() + ", UserID: " + authResponse.getUserId());
                         Toast.makeText(getContext(), "Login Successful!", Toast.LENGTH_SHORT).show();
 
-                        // --- SAVE THE TOKEN ---
+                        // --- SAVE THE TOKEN and USER ID---
                         sessionManager.saveAuthToken(authResponse.getToken());
+                        sessionManager.saveUserId(authResponse.getUserId()); // Save the user ID
 
                         navigateToHome();
 
                     } else {
-                        // API returned success=false or other error
-                        Toast.makeText(getContext(), "Login failed: " + authResponse.getMessage(), Toast.LENGTH_LONG).show();
+                        // Log detailed failure info from backend
+                        Log.w("LoginFragment", "Login failed (API success=false or missing data): Status=" + authResponse.getStatus() + ", Message=" + authResponse.getMessage() + ", HasToken=" + (authResponse.getToken()!=null) + ", HasUserId=" + (authResponse.getUserId()!=null));
+                        String failMsg = authResponse.getMessage() != null ? authResponse.getMessage() : "Login failed. Please check credentials.";
+                        Toast.makeText(getContext(), failMsg, Toast.LENGTH_LONG).show();
                     }
                 } else {
-                    // HTTP error (404, 500, etc.)
-                    String errorMsg = "Login failed. Code: " + response.code();
+                    // HTTP error (404, 401, 500, etc.)
+                    String errorMsg = "Login failed";
+                    String errorBody = "";
                     try {
-                        // Try to parse the error body
                         if (response.errorBody() != null) {
-                            errorMsg += ", " + response.errorBody().string();
+                            errorBody = response.errorBody().string(); // Read error body once
+                            // Basic check if error body might be JSON containing 'detail'
+                            if (errorBody.trim().startsWith("{") && errorBody.contains("\"detail\"")) {
+                                // Attempt to parse detail (simple parsing, consider using Gson for robustness)
+                                String detail = errorBody.substring(errorBody.indexOf("\"detail\":\"") + 10);
+                                detail = detail.substring(0, detail.indexOf("\""));
+                                errorMsg += ": " + detail;
+                            } else {
+                                // Otherwise, append raw error body if short, or just code
+                                errorMsg += " (Code: " + response.code() + ")";
+                                Log.e("LoginErrorBody", errorBody); // Log the full error body
+                            }
+                        } else {
+                            errorMsg += " (Code: " + response.code() + ", " + response.message() + ")";
                         }
                     } catch (Exception e) {
-                        Log.e("LoginError", "Error parsing error body", e);
+                        Log.e("LoginError", "Error parsing/reading error body", e);
+                        errorMsg += " (Code: " + response.code() + ")"; // Fallback
                     }
+                    Log.e("LoginError", "HTTP Error: " + response.code() + " - " + response.message() + " | Body: " + errorBody);
                     Toast.makeText(getContext(), errorMsg, Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<AuthResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<AuthResponse> call, @NonNull Throwable t) {
+                // Ensure fragment is still attached
+                if (!isAdded() || getContext() == null) return;
+
                 // Network failure (no internet, host unreachable)
                 loginButton.setEnabled(true);
                 loginButton.setText("Login");
                 Log.e("LoginFailure", "Network error: " + t.getMessage(), t);
-                Toast.makeText(getContext(), "Login failed: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "Login failed: Network error. Please check connection.", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -193,26 +249,41 @@ public class LoginFragment extends Fragment {
     private void navigateToHome() {
         if (getActivity() == null) return;
         Intent intent = new Intent(getActivity(), HomeActivity.class);
+        // Clear back stack so user cannot go back to login screen
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-        getActivity().finish(); // Finish MainActivity so user can't go back to it
+        getActivity().finish(); // Finish MainActivity
     }
+
 
     private void applyGradientToText(TextView textView) {
-        if (textView.getWidth() == 0) return; // Avoid crash if view not measured yet
+        // Add null checks for safety
+        if (textView == null || textView.getWidth() == 0 || textView.getText() == null) return;
         android.text.TextPaint paint = textView.getPaint();
+        if(paint == null) return;
+
         float width = paint.measureText(textView.getText().toString());
+        if(width <= 0) return; // Avoid issues if text is empty or width is zero
 
-        android.graphics.Shader textShader = new android.graphics.LinearGradient(
-                0, 0, width, textView.getTextSize(),
-                new int[]{
-                        Color.parseColor("#38B2AC"), // Teal
-                        Color.parseColor("#D53F8C")  // Pink
-                },
-                null,
-                android.graphics.Shader.TileMode.CLAMP
-        );
+        try {
+            // Use color resources
+            int startColor = ContextCompat.getColor(requireContext(), R.color.gradient_start);
+            int endColor = ContextCompat.getColor(requireContext(), R.color.gradient_end);
 
-        textView.getPaint().setShader(textShader);
+            android.graphics.Shader textShader = new android.graphics.LinearGradient(
+                    0, 0, width, textView.getTextSize(),
+                    new int[]{startColor, endColor},
+                    null,
+                    android.graphics.Shader.TileMode.CLAMP
+            );
+
+            paint.setShader(textShader);
+            textView.invalidate(); // Force redraw with shader
+        } catch (Exception e) {
+            Log.e("LoginFragment", "Error applying gradient shader", e);
+            // Fallback to solid color if gradient fails
+            textView.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary));
+        }
     }
-}
 
+}
