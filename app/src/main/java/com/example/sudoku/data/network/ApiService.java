@@ -11,6 +11,8 @@ import com.example.sudoku.data.model.RegisterRequest;
 import com.example.sudoku.data.model.UpdateResponse; // Import UpdateResponse
 import com.example.sudoku.data.model.UserResponse;
 
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -43,5 +45,7 @@ public interface ApiService {
     @GET("/api/leaderboard/")
     Call<LeaderboardResponse> getLeaderboard(); // Requires Auth Header
 
+    @GET("/api/user/game_history")
+    Call<List<GameResponse>> getGameHistory(); // Returns a list of completed games
 }
 
