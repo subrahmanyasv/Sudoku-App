@@ -1,3 +1,5 @@
+// Sudoku-App/app/src/main/java/com/example/sudoku/GameActivity.java
+
 package com.example.sudoku;
 
 import androidx.activity.OnBackPressedCallback;
@@ -36,7 +38,6 @@ import retrofit2.Response;
 
 public class GameActivity extends AppCompatActivity {
 
-    // ... (Keep existing member variables)
     private SudokuBoardView sudokuBoardView;
     private Chronometer timerChronometer;
     private ImageView pauseButton;
@@ -50,6 +51,7 @@ public class GameActivity extends AppCompatActivity {
     private String currentGameId; // Store the Game ID
     private String currentDifficulty;
     private int initialDurationSeconds = 0; // Store duration if resuming game
+    private String initialCurrentState = null; // Store the saved board state if resuming
 
     private boolean isPaused = false;
     private long timeWhenStopped = 0;
@@ -62,7 +64,7 @@ public class GameActivity extends AppCompatActivity {
 
         apiService = RetrofitClient.getApiService(this);
 
-        // Find Views (Keep existing findViewById calls)
+        // Find Views
         sudokuBoardView = findViewById(R.id.sudoku_board_view);
         timerChronometer = findViewById(R.id.timer_chronometer);
         pauseButton = findViewById(R.id.pause_button);
@@ -78,29 +80,36 @@ public class GameActivity extends AppCompatActivity {
 
         // --- Get Game Data ---
         Intent intent = getIntent();
-        boolean isResumingGame = false; // Flag to indicate if we're loading an existing game
+        boolean isResumingGame = false;
 
-        // Check if resuming an existing game
+        // Check if resuming an existing game (receives GameResponse)
         if (intent != null && intent.hasExtra("EXISTING_GAME_DATA")) {
             GameResponse existingGame = (GameResponse) intent.getSerializableExtra("EXISTING_GAME_DATA");
             if (existingGame != null && existingGame.getPuzzle() != null) {
                 isResumingGame = true;
-                currentPuzzleData = existingGame.getPuzzle(); // Extract puzzle data
-                currentGameId = existingGame.getId();         // Get Game ID from GameResponse
-                currentDifficulty = existingGame.getDifficulty();
-                initialDurationSeconds = existingGame.getDurationSeconds(); // Store initial duration
+                currentPuzzleData = existingGame.getPuzzle();
+                currentGameId = existingGame.getId();
+                currentDifficulty = existingGame.getDifficulty(); // Use difficulty from GameResponse
+                initialDurationSeconds = existingGame.getDurationSeconds();
 
-                Log.d("GameActivity", "Resuming Game: ID=" + currentGameId + ", Initial Duration=" + initialDurationSeconds);
+                // *** FIX: Get the saved state (assuming GameResponse POJO has getCurrentState()) ***
+                // This relies on GameResponse.java having the `currentState` field
+                initialCurrentState = existingGame.getCurrentState();
 
-                // Load the board state (Need to add this method to SudokuBoardView if not present)
-                // Assuming the puzzle object contains the *initial* board string.
-                // If the backend needs to provide the *current* state of an unfinished game,
-                // the API and SudokuBoardView will need adjustments. For now, we load the initial state.
+                if (initialCurrentState == null) {
+                    Log.w("GameActivity", "Backend did not provide current state for resuming game. Loading initial puzzle.");
+                }
+
+                Log.d("GameActivity", "Resuming Game: ID=" + currentGameId + ", Initial Duration=" + initialDurationSeconds + ", State=" + (initialCurrentState != null ? "Loaded" : "Not Provided"));
+
                 if (currentPuzzleData.getBoardString() != null && currentPuzzleData.getSolutionString() != null) {
+                    // Set the initial board first to establish starting cells
                     sudokuBoardView.setBoard(currentPuzzleData.getBoardString(), currentPuzzleData.getSolutionString());
-                    // TODO: Ideally, backend should send the *last saved state* of the board,
-                    // and we'd need a `sudokuBoardView.loadStateFromString(savedStateString)` method.
-                    // For now, we only load the initial puzzle.
+
+                    // *** FIX: If we have a saved state, load it now ***
+                    if (initialCurrentState != null && !initialCurrentState.equals(currentPuzzleData.getBoardString())) {
+                        sudokuBoardView.loadCurrentState(initialCurrentState);
+                    }
                 } else {
                     handleLoadError("Board or solution string missing in existing game data.");
                     return;
@@ -111,13 +120,14 @@ public class GameActivity extends AppCompatActivity {
                 return;
             }
         }
-        // Check if starting a new game (from DifficultyActivity)
+        // Check if starting a new game (receives PuzzleResponse)
         else if (intent != null && intent.hasExtra("PUZZLE_DATA")) {
             currentPuzzleData = (PuzzleResponse) intent.getSerializableExtra("PUZZLE_DATA");
             if (currentPuzzleData != null) {
-                currentGameId = currentPuzzleData.getGameId(); // Get Game ID from PuzzleResponse
-                currentDifficulty = currentPuzzleData.getDifficulty();
+                currentGameId = currentPuzzleData.getGameId();
+                currentDifficulty = currentPuzzleData.getDifficulty(); // Use difficulty from PuzzleResponse
                 initialDurationSeconds = 0; // New game starts at 0
+                initialCurrentState = null; // No saved state for new game
 
                 Log.d("GameActivity", "Starting New Game: ID=" + currentGameId);
 
@@ -132,25 +142,23 @@ public class GameActivity extends AppCompatActivity {
                 return;
             }
         }
-        // No valid data found
         else {
             handleLoadError("Intent or required game/puzzle data extra is missing.");
             return;
         }
 
 
-        // Setup UI Listeners (Keep existing setup calls)
+        // Setup UI Listeners
         setupNumberPad();
         setupControlButtons();
         setupPauseMenu();
         setupOnBackPressed();
 
-        // Start Timer (adjusting for resumed game)
-        timeWhenStopped = initialDurationSeconds * 1000L; // Convert saved seconds to millis
+        // Start Timer
+        timeWhenStopped = initialDurationSeconds * 1000L;
         startTimer();
     }
 
-    // Helper for handling data loading errors
     private void handleLoadError(String message) {
         Log.e("GameActivity", message);
         Toast.makeText(this, "Error loading game data.", Toast.LENGTH_SHORT).show();
@@ -161,7 +169,6 @@ public class GameActivity extends AppCompatActivity {
     // --- Timer Management ---
     private void startTimer() {
         if (timerChronometer != null) {
-            // Set base considering previously stopped time
             timerChronometer.setBase(SystemClock.elapsedRealtime() - timeWhenStopped);
             timerChronometer.start();
             isPaused = false;
@@ -173,7 +180,6 @@ public class GameActivity extends AppCompatActivity {
     private void stopTimer() {
         if (!isPaused && timerChronometer != null) {
             timerChronometer.stop();
-            // Store the total elapsed time correctly
             timeWhenStopped = SystemClock.elapsedRealtime() - timerChronometer.getBase();
             isPaused = true;
         } else if (timerChronometer == null) {
@@ -183,20 +189,17 @@ public class GameActivity extends AppCompatActivity {
 
 
     private int getElapsedTimeSeconds() {
-        // Correctly return the stored time if paused, or calculate current if running
         if (timerChronometer == null) return (int) (timeWhenStopped / 1000);
-
         if (isPaused) {
             return (int) (timeWhenStopped / 1000);
         } else {
-            // Calculate current elapsed time based on the chronometer's base
             long elapsedMillis = SystemClock.elapsedRealtime() - timerChronometer.getBase();
             return (int) (elapsedMillis / 1000);
         }
     }
 
 
-    // --- UI Setup (Keep existing methods) ---
+    // --- UI Setup ---
     private void setupNumberPad() {
         if (findViewById(R.id.button_1) != null) findViewById(R.id.button_1).setOnClickListener(v -> sudokuBoardView.setNumber(1));
         if (findViewById(R.id.button_2) != null) findViewById(R.id.button_2).setOnClickListener(v -> sudokuBoardView.setNumber(2));
@@ -253,7 +256,7 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-    // --- Confirmation Dialogs (Keep existing methods) ---
+    // --- Confirmation Dialogs ---
     private void showRestartConfirmation() {
         new AlertDialog.Builder(this)
                 .setTitle("Restart Game")
@@ -262,13 +265,13 @@ public class GameActivity extends AppCompatActivity {
                     if (currentPuzzleData != null && currentPuzzleData.getBoardString() != null && currentPuzzleData.getSolutionString() != null && sudokuBoardView != null && timerChronometer != null) {
                         sudokuBoardView.setBoard(currentPuzzleData.getBoardString(), currentPuzzleData.getSolutionString());
                         timeWhenStopped = 0;
-                        timerChronometer.stop();
+                        timerChronometer.stop(); // Stop before setting base
                         timerChronometer.setBase(SystemClock.elapsedRealtime());
-                        startTimer();
+                        // startTimer(); // Start timer implicitly by togglePauseMenu(false)
                         togglePauseMenu(false);
                         Toast.makeText(this, "Game Restarted", Toast.LENGTH_SHORT).show();
                     } else {
-                        Log.e("GameActivity", "Cannot restart: puzzle data, board view, or timer is missing.");
+                        Log.e("GameActivity", "Cannot restart: Critical components missing.");
                         Toast.makeText(this, "Error restarting game.", Toast.LENGTH_SHORT).show();
                     }
                 })
@@ -279,34 +282,33 @@ public class GameActivity extends AppCompatActivity {
     private void showQuitConfirmation() {
         new AlertDialog.Builder(this)
                 .setTitle("Quit Game")
-                .setMessage("Are you sure you want to quit? Your progress will be saved.") // Updated message
+                .setMessage("Are you sure you want to quit? Your progress will be saved.")
                 .setPositiveButton("Quit & Save", (dialog, which) -> {
                     stopTimer();
-                    // Update game state on backend as incomplete, SAVE current progress
-                    callUpdateGameApi(false, 0); // Mark as not completed, score 0 for now
-                    // Finish() is now called *after* API call starts in callUpdateGameApi for quitting
+                    callUpdateGameApi(false, 0); // Mark as not completed, score 0
+                    // Finish() is now called *after* API call starts in callUpdateGameApi for quitting case
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
     }
 
 
-    // --- Back Press Handling (Keep existing method) ---
+    // --- Back Press Handling ---
     private void setupOnBackPressed() {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 if (pauseOverlay != null && pauseOverlay.getVisibility() == View.VISIBLE) {
-                    togglePauseMenu(false); // If paused, just resume
+                    togglePauseMenu(false);
                 } else {
-                    showQuitConfirmation(); // Otherwise, show quit dialog
+                    showQuitConfirmation();
                 }
             }
         });
     }
 
 
-    // --- Game Logic (Keep existing methods, ensure null checks) ---
+    // --- Game Logic ---
     private void submitPuzzle() {
         stopTimer();
         if (sudokuBoardView == null) {
@@ -325,28 +327,29 @@ public class GameActivity extends AppCompatActivity {
             Toast.makeText(this, "Puzzle Correct! Score: " + finalScore, Toast.LENGTH_LONG).show();
             callUpdateGameApi(true, finalScore);
         } else {
-            Toast.makeText(this, "Puzzle is not solved correctly. Keep trying!", Toast.LENGTH_LONG).show();
-            startTimer();
+            Toast.makeText(this, "Puzzle is not solved correctly or is incomplete. Keep trying!", Toast.LENGTH_LONG).show();
+            startTimer(); // Resume timer if submission failed
         }
     }
 
 
     private int calculateScore(int timeSeconds, int errors, String difficulty) {
         int baseScore;
-        String lowerCaseDifficulty = (difficulty != null) ? difficulty.toLowerCase() : "hard";
+        String lowerCaseDifficulty = (difficulty != null) ? difficulty.toLowerCase() : "unknown"; // Handle null
         switch (lowerCaseDifficulty) {
             case "easy": baseScore = 1000; break;
             case "medium": baseScore = 2000; break;
-            case "hard": default: baseScore = 3000; break;
+            case "hard": baseScore = 3000; break;
+            default: baseScore = 1500; break; // Default score for unknown
         }
-        int timePenalty = Math.max(0, timeSeconds - 60);
-        int errorPenalty = errors * 50;
+        int timePenalty = Math.max(0, timeSeconds - 60); // Example penalty
+        int errorPenalty = errors * 50; // Example penalty
         int finalScore = baseScore - timePenalty - errorPenalty;
-        return Math.max(10, finalScore);
+        return Math.max(10, finalScore); // Minimum score
     }
 
 
-    // --- API Call (Keep existing method and helpers) ---
+    // --- API Call ---
     private void callUpdateGameApi(boolean completed, int score) {
         if (currentGameId == null || currentGameId.isEmpty()) {
             Log.e("GameActivity", "Cannot update game: Game ID is missing.");
@@ -354,35 +357,40 @@ public class GameActivity extends AppCompatActivity {
             return;
         }
         if (currentDifficulty == null || currentDifficulty.isEmpty()) {
-            Log.e("GameActivity", "Cannot update game: Difficulty is missing.");
-            currentDifficulty = "unknown";
-            if (completed) {
-                Toast.makeText(this, "Error: Could not save game result (Missing Difficulty).", Toast.LENGTH_LONG).show();
-                startTimer();
-                return;
-            }
+            Log.w("GameActivity", "Cannot update game: Difficulty is missing. Setting to 'unknown'.");
+            currentDifficulty = "unknown"; // Assign a default if missing
         }
+        if (sudokuBoardView == null) {
+            Log.e("GameActivity", "Cannot update game: SudokuBoardView is null.");
+            handleApiErrorCondition(completed); // Treat as an API error condition
+            return;
+        }
+
 
         final int finalScore = score;
         int timeSeconds = getElapsedTimeSeconds();
-        int errors = (sudokuBoardView != null) ? sudokuBoardView.getErrorCount() : 0;
-        String completedTimestamp = getTimestamp();
+        int errors = sudokuBoardView.getErrorCount();
+        String completedTimestamp = completed ? getTimestamp() : null;
+        // *** FIX: Get current board state for saving ***
+        String currentBoardState = sudokuBoardView.getBoardString();
 
+        // Use the correct GameUpdateRequest (matching backend's GameBase for update)
         GameUpdateRequest updateRequest = new GameUpdateRequest();
         updateRequest.setId(currentGameId);
         updateRequest.setDifficulty(currentDifficulty);
         updateRequest.setWasCompleted(completed);
         updateRequest.setDurationSeconds(timeSeconds); // Save current duration
         updateRequest.setErrorsMade(errors);
-        updateRequest.setHintsUsed(0);
+        updateRequest.setHintsUsed(0); // Assuming hints not implemented
         updateRequest.setFinalScore(finalScore);
-        updateRequest.setCompletedAt(completed ? completedTimestamp : null); // Only set if completed
+        updateRequest.setCompletedAt(completedTimestamp);
 
-        // TODO: Add current board state to updateRequest if backend supports saving it
-        // updateRequest.setCurrentBoardState(sudokuBoardView.getBoardString());
+        // *** FIX: Add current board state to request ***
+        // This relies on GameUpdateRequest.java having the `currentState` field
+        updateRequest.setCurrentState(currentBoardState);
 
 
-        Log.d("GameActivity", "Updating Game - ID: " + currentGameId + ", Completed: " + completed + ", Score: " + finalScore + ", Time: " + timeSeconds + ", Errors: " + errors);
+        Log.d("GameActivity", "Updating Game - ID: " + currentGameId + ", Completed: " + completed + ", Score: " + finalScore + ", Time: " + timeSeconds + ", Errors: " + errors + ", State: " + currentBoardState);
 
         if (apiService == null) {
             Log.e("GameActivity", "ApiService is null, cannot update game.");
@@ -390,10 +398,11 @@ public class GameActivity extends AppCompatActivity {
             return;
         }
 
+        // *** FIX: Use the correct API endpoint and request object ***
         apiService.updateGame(updateRequest).enqueue(new Callback<UpdateResponse>() {
             @Override
             public void onResponse(@NonNull Call<UpdateResponse> call, @NonNull Response<UpdateResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
+                if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                     handleSuccessfulUpdate(completed, finalScore, timeSeconds);
                 } else {
                     handleFailedUpdate(response, completed);
@@ -405,8 +414,9 @@ public class GameActivity extends AppCompatActivity {
             }
         });
 
+        // *** FIX: Only navigate away immediately if quitting ***
         if (!completed) {
-            // Go back to Home screen immediately after starting the save request when quitting
+            // Go back to Home screen immediately after *starting* the save request when quitting
             Intent homeIntent = new Intent(GameActivity.this, HomeActivity.class);
             homeIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(homeIntent);
@@ -414,41 +424,56 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-    // --- Helper methods for API response handling (Keep existing methods) ---
+    // --- Helper methods for API response handling ---
     private void handleMissingGameId(boolean completed) {
         if (!completed) {
+            // If quitting and ID is missing, just go back home without saving
+            Log.w("GameActivity", "Quitting game but Game ID is missing. Cannot save progress.");
+            Intent homeIntent = new Intent(GameActivity.this, HomeActivity.class);
+            homeIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(homeIntent);
             finish();
         } else {
-            Toast.makeText(this, "Error: Could not save game result (Missing ID).", Toast.LENGTH_LONG).show();
+            // If submitting and ID is missing, show error and resume timer
+            Toast.makeText(this, "Error: Could not save game result (Missing Game ID).", Toast.LENGTH_LONG).show();
             startTimer();
         }
     }
 
     private void handleSuccessfulUpdate(boolean completed, int finalScore, int timeSeconds) {
-        Log.d("GameActivity", "Game update successful.");
+        Log.d("GameActivity", "Game update successful via API.");
         if (completed) {
             navigateToResults(finalScore, timeSeconds);
         } else {
-            Log.d("GameActivity", "Quit & Save API call finished successfully.");
-            // finish() was already called when quitting
+            Log.d("GameActivity", "Quit & Save API call finished successfully. Activity should already be finishing.");
+            // finish() was called earlier for the quitting case
         }
     }
 
     private void handleFailedUpdate(Response<UpdateResponse> response, boolean completed) {
-        String errorMsg = "API Error updating game: " + response.code() + " - " + response.message();
-        try {
-            if (response.errorBody() != null) { errorMsg += " | Body: " + response.errorBody().string(); }
-        } catch (Exception e) { Log.e("GameActivity", "Error reading error body", e); }
-        Log.e("GameActivity", errorMsg);
-        Toast.makeText(GameActivity.this, "Error saving game progress: " + response.message(), Toast.LENGTH_LONG).show();
+        String defaultError = "Error saving game progress.";
+        String apiMsg = null;
+        if (response.body() != null && response.body().getMessage() != null) {
+            apiMsg = response.body().getMessage();
+        } else {
+            try {
+                if (response.errorBody() != null) {
+                    apiMsg = response.errorBody().string(); // Try reading error body
+                }
+            } catch (Exception e) { Log.e("GameActivity", "Error reading error body", e); }
+        }
+
+        String errorMsg = defaultError + (apiMsg != null ? ": " + apiMsg : " Code: " + response.code());
+        Log.e("GameActivity", "API Error updating game: " + response.code() + " - " + response.message() + (apiMsg != null ? " | Body/Msg: " + apiMsg : ""));
+        Toast.makeText(GameActivity.this, errorMsg, Toast.LENGTH_LONG).show();
 
         if (response.code() == 401) {
-            handleUnauthorizedError();
+            handleUnauthorizedError(); // Special handling for auth errors
         } else if (completed) {
-            startTimer();
+            startTimer(); // If submitting failed, resume timer
         } else {
-            Log.w("GameActivity", "Failed to save quit status to backend, but finishing anyway.");
-            // finish() was already called when quitting
+            Log.w("GameActivity", "Failed to save quit status to backend, but activity should be finishing anyway.");
+            // finish() was called earlier for the quitting case
         }
     }
 
@@ -456,18 +481,22 @@ public class GameActivity extends AppCompatActivity {
         Log.e("GameActivity", "Network Error updating game: " + t.getMessage(), t);
         Toast.makeText(GameActivity.this, "Network Error: Could not save progress.", Toast.LENGTH_LONG).show();
         if (completed) {
-            startTimer();
+            startTimer(); // If submitting failed due to network, resume timer
         } else {
-            Log.w("GameActivity", "Failed to save quit status due to network error, but finishing anyway.");
-            // finish() was already called when quitting
+            Log.w("GameActivity", "Failed to save quit status due to network error, but activity should be finishing anyway.");
+            // finish() was called earlier for the quitting case
         }
     }
 
     private void handleApiErrorCondition(boolean completed) {
-        Toast.makeText(this, "Error preparing game update.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Internal error preparing game update.", Toast.LENGTH_SHORT).show();
         if (completed) {
             startTimer();
         } else {
+            // If quitting fails before API call, just finish
+            Intent homeIntent = new Intent(GameActivity.this, HomeActivity.class);
+            homeIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(homeIntent);
             finish();
         }
     }
@@ -479,7 +508,7 @@ public class GameActivity extends AppCompatActivity {
         resultsIntent.putExtra(ResultsActivity.KEY_TIME, timeFormatted);
         resultsIntent.putExtra(ResultsActivity.KEY_SCORE, finalScore);
         startActivity(resultsIntent);
-        finish();
+        finish(); // Finish GameActivity after navigating to results
     }
 
 
@@ -497,11 +526,12 @@ public class GameActivity extends AppCompatActivity {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-        finish();
+        finish(); // Finish current activity
     }
 
+    // This method is linked from the XML layout (android:onClick)
     public void onBackButtonClicked(View view) {
-        showQuitConfirmation();
+        showQuitConfirmation(); // Use the same logic as pressing the system back button
     }
 }
 

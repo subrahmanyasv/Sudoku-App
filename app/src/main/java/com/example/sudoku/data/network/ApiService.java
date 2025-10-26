@@ -4,6 +4,7 @@ package com.example.sudoku.data.network;
 import com.example.sudoku.data.model.AuthResponse;
 import com.example.sudoku.data.model.GameResponse;
 import com.example.sudoku.data.model.GameUpdateRequest; // Import GameUpdateRequest
+import com.example.sudoku.data.model.LeaderboardResponse;
 import com.example.sudoku.data.model.LoginRequest;
 import com.example.sudoku.data.model.PuzzleResponse;
 import com.example.sudoku.data.model.RegisterRequest;
@@ -38,6 +39,9 @@ public interface ApiService {
     // --- New Endpoint for In-Progress Game ---
     @GET("/api/user/in_progress_game")
     Call<GameResponse> getInProgressGame();
+
+    @GET("/api/leaderboard/")
+    Call<LeaderboardResponse> getLeaderboard(); // Requires Auth Header
 
 }
 

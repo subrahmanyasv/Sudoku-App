@@ -1,4 +1,4 @@
-// Relative Path: Sudoku-App/app/src/main/java/com/example/sudoku/data/model/GameUpdateRequest.java
+// Sudoku-App/app/src/main/java/com/example/sudoku/data/model/GameUpdateRequest.java
 package com.example.sudoku.data.model;
 
 import com.google.gson.annotations.SerializedName;
@@ -32,6 +32,11 @@ public class GameUpdateRequest {
 
     @SerializedName("completed_at")
     private String completedAt; // Send timestamp as ISO 8601 String e.g., "2025-10-24T18:30:00Z"
+
+    // *** ADDED: Field to send the current board state ***
+    @SerializedName("current_state")
+    private String currentState;
+
     // --- Empty Constructor (Added) ---
     public GameUpdateRequest() {
         // Default constructor
@@ -71,8 +76,13 @@ public class GameUpdateRequest {
         this.completedAt = completedAt;
     }
 
-    // Constructor
-    public GameUpdateRequest(String gameId, String difficulty, boolean wasCompleted, int durationSeconds, int errorsMade, int hintsUsed, int finalScore, String completedAt) {
+    // *** ADDED: Setter for current state ***
+    public void setCurrentState(String currentState) {
+        this.currentState = currentState;
+    }
+
+    // Constructor (Updated)
+    public GameUpdateRequest(String gameId, String difficulty, boolean wasCompleted, int durationSeconds, int errorsMade, int hintsUsed, int finalScore, String completedAt, String currentState) {
         this.gameId = gameId;
         this.difficulty = difficulty;
         this.wasCompleted = wasCompleted;
@@ -81,6 +91,7 @@ public class GameUpdateRequest {
         this.hintsUsed = hintsUsed;
         this.finalScore = finalScore;
         this.completedAt = completedAt;
+        this.currentState = currentState;
     }
 
     // Getters (and potentially setters if needed)
@@ -92,6 +103,7 @@ public class GameUpdateRequest {
     public int getHintsUsed() { return hintsUsed; }
     public int getFinalScore() { return finalScore; }
     public String getCompletedAt() { return completedAt; }
-
+    // *** ADDED: Getter for current state ***
+    public String getCurrentState() { return currentState; }
 
 }

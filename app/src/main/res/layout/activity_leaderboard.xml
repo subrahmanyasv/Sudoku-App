@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0F131E"
+    android:background="@color/primary_background"
     android:fitsSystemWindows="true"
-
     tools:context=".LeaderboardActivity">
 
     <LinearLayout
@@ -15,7 +13,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="16dp"
-        android:layout_above="@+id/bottom_navigation">
+        android:layout_above="@id/bottom_navigation">
 
 
         <TextView
@@ -26,16 +24,41 @@
             android:textColor="@android:color/white"
             android:textSize="32sp"
             android:textStyle="bold"
-            android:layout_marginBottom="24dp"/>
+            android:layout_marginBottom="16dp"/>
 
-
-
+        <!-- Difficulty Tabs -->
         <LinearLayout
-            android:id="@+id/tab_layout"
+            android:id="@+id/difficulty_tab_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/card_background"
+            android:padding="4dp">
+
+            <Button
+                android:id="@+id/easy_button"
+                style="@style/LeaderboardTab.Selected"
+                android:text="Easy" />
+
+            <Button
+                android:id="@+id/medium_button"
+                style="@style/LeaderboardTab.Unselected"
+                android:text="Medium" />
+
+            <Button
+                android:id="@+id/hard_button"
+                style="@style/LeaderboardTab.Unselected"
+                android:text="Hard" />
+        </LinearLayout>
+
+        <!-- Time Span Tabs -->
+        <LinearLayout
+            android:id="@+id/timespan_tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/card_background"
             android:padding="4dp">
 
@@ -55,23 +78,37 @@
                 android:text="All-Time" />
         </LinearLayout>
 
-
-
+        <!-- RecyclerView for Leaderboard Entries -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/leaderboard_recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             tools:listitem="@layout/list_item_leaderboard"/>
+
+        <!-- Optional TextView for User Rank (Hidden by default) -->
+        <TextView
+            android:id="@+id/user_rank_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:text="Your Rank (Easy - Daily): #5 (Score: 800)" />
+
     </LinearLayout>
 
-
-
+    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="#0F131E"
+        android:background="@color/nav_background"
         app:itemIconTint="@color/bottom_nav_color"
         app:itemTextColor="@color/bottom_nav_color"
         app:itemRippleColor="@color/accent_blue_transparent"
@@ -79,3 +116,4 @@
         app:labelVisibilityMode="labeled"/>
 
 </RelativeLayout>
+

@@ -1,4 +1,4 @@
-// Relative Path: Sudoku-App/app/src/main/java/com/example/sudoku/data/model/GameResponse.java
+// Sudoku-App/app/src/main/java/com/example/sudoku/data/model/GameResponse.java
 package com.example.sudoku.data.model;
 
 import com.google.gson.annotations.SerializedName;
@@ -32,6 +32,10 @@ public class GameResponse implements Serializable {
     @SerializedName("completed_at")
     private String completedAt; // Will likely be null for in-progress games
 
+    // *** ADDED: Field to hold the saved board state ***
+    @SerializedName("current_state")
+    private String currentState;
+
     @SerializedName("puzzle")
     private PuzzleResponse puzzle; // Nested puzzle details
 
@@ -45,6 +49,9 @@ public class GameResponse implements Serializable {
     public int getFinalScore() { return finalScore; }
     public String getCompletedAt() { return completedAt; }
     public PuzzleResponse getPuzzle() { return puzzle; }
+
+    // *** ADDED: Getter for current state ***
+    public String getCurrentState() { return currentState; }
 
     // No Setters needed if only used for receiving data
 }

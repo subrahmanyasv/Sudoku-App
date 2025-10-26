@@ -1,3 +1,4 @@
+// Sudoku-App/app/src/main/java/com/example/sudoku/HomeActivity.java
 package com.example.sudoku;
 
 import androidx.annotation.NonNull; // Import NonNull
@@ -80,14 +81,17 @@ public class HomeActivity extends AppCompatActivity {
 
         // Add listener for the continue game card/button
         View.OnClickListener continueClickListener = v -> {
-            if (inProgressGame != null && inProgressGame.getPuzzle() != null) {
+            // *** FIX: Check if game is NOT completed before allowing continue ***
+            if (inProgressGame != null && !inProgressGame.wasCompleted() && inProgressGame.getPuzzle() != null) {
                 Intent gameIntent = new Intent(HomeActivity.this, GameActivity.class);
                 // Pass the *entire* GameResponse object, which includes the PuzzleResponse
                 gameIntent.putExtra("EXISTING_GAME_DATA", inProgressGame);
                 startActivity(gameIntent);
             } else {
-                Toast.makeText(HomeActivity.this, "Error loading saved game.", Toast.LENGTH_SHORT).show();
-                Log.e("HomeActivity", "Attempted to continue game, but inProgressGame or its puzzle was null.");
+                Toast.makeText(HomeActivity.this, "Error loading saved game or game already completed.", Toast.LENGTH_SHORT).show();
+                Log.e("HomeActivity", "Attempted to continue game, but inProgressGame was null, completed, or puzzle was null.");
+                // Refresh the UI state in case the game was completed elsewhere
+                fetchInProgressGame();
             }
         };
 
@@ -214,11 +218,12 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    // --- New method to update UI based on in-progress game ---
+    // --- Updated method to update UI based on in-progress game ---
     private void updateContinueCardVisibility() {
         if (continueGameCard == null || newGameButton == null || continueGameDetailsText == null) return; // Views not ready
 
-        if (inProgressGame != null && inProgressGame.getPuzzle() != null) {
+        // *** FIX: Check wasCompleted flag ***
+        if (inProgressGame != null && !inProgressGame.wasCompleted() && inProgressGame.getPuzzle() != null) {
             // Show Continue Card, Hide New Game Button
             continueGameCard.setVisibility(View.VISIBLE);
             newGameButton.setVisibility(View.GONE);
@@ -237,7 +242,11 @@ public class HomeActivity extends AppCompatActivity {
             // Hide Continue Card, Show New Game Button
             continueGameCard.setVisibility(View.GONE);
             newGameButton.setVisibility(View.VISIBLE);
-            Log.d("HomeActivity", "No in-progress game found. Showing new game button.");
+            if (inProgressGame != null && inProgressGame.wasCompleted()) {
+                Log.d("HomeActivity", "Last game was completed. Showing new game button.");
+            } else {
+                Log.d("HomeActivity", "No active in-progress game found. Showing new game button.");
+            }
         }
     }
 
