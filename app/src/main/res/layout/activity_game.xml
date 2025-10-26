@@ -91,7 +91,7 @@
             android:text="Hint" />
 
         <TextView
-            android:id="@+id/debug_solve_button"
+            android:id="@+id/solve_debug_button"
             style="@style/GameControlButton"
             android:drawableTop="@drawable/ic_check_circle"
             android:text="Solve" />

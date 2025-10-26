@@ -7,19 +7,22 @@
     android:background="@color/dark_background"
     tools:context=".ProfileActivity">
 
-    <!-- Header for Profile, adjusts for status bar --><TextView
+    <!-- Header for Profile, adjusts for status bar -->
+    <!-- Adjusts its position --><TextView
     android:id="@+id/profile_header_text"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:layout_marginTop="32dp"
     android:text="Profile"
     android:textColor="@color/white"
     android:textSize="24sp"
     android:textStyle="bold"
-    android:layout_marginTop="16dp"
-    app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintVertical_bias="0.0" /> <!-- Adjusts its position --><ScrollView
+    app:layout_constraintHorizontal_bias="0.498"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent" />
+
+    <ScrollView
     android:layout_width="match_parent"
     android:layout_height="0dp"
     app:layout_constraintTop_toBottomOf="@+id/profile_header_text"
@@ -71,23 +74,18 @@
         android:id="@+id/tab_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:background="@color/dark_background"
         app:tabIndicatorColor="@color/accent_blue"
         app:tabIndicatorHeight="3dp"
         app:tabSelectedTextColor="@color/accent_blue"
-        app:tabTextColor="@color/text_secondary"
         app:tabTextAppearance="@style/TabLayoutTextStyle"
-        android:background="@color/dark_background"
-        android:layout_marginBottom="20dp">
+        app:tabTextColor="@color/text_secondary">
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Stats" />
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Achievements" />
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"

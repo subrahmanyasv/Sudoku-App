@@ -55,19 +55,7 @@
         android:inputType="textPassword"
         android:layout_marginBottom="8dp" />
 
-    <!-- Forgot Password Link -->
-    <TextView
-        android:id="@+id/forgot_password"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Forgot Password?"
-        android:textColor="#00FFD1"
-        android:textStyle="bold"
-        android:gravity="end"
-        android:clickable="true"
-        android:focusable="true"
-        android:padding="8dp"
-        android:layout_marginBottom="16dp"/>
+
 
     <!-- Login Button -->
     <Button
@@ -79,7 +67,8 @@
         android:textStyle="bold"
         android:background="@drawable/button_background"
         android:padding="16dp"
-        android:layout_marginBottom="24dp" />
+        android:layout_marginBottom="24dp"
+        android:layout_marginTop="15dp"/>
 
     <!-- Register Link -->
     <TextView
