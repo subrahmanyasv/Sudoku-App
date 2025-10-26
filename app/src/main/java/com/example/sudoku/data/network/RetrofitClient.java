@@ -10,7 +10,7 @@ import okhttp3.logging.HttpLoggingInterceptor;
 public class RetrofitClient {
 
     // Use "10.0.2.2" to connect from Android Emulator to localhost
-    private static final String BASE_URL = "http://10.0.2.2:3001/"; // Use port 3001 as in your .env
+    private static final String BASE_URL = "https://sudokuapp-backend.onrender.com/";
 
     private static Retrofit retrofit = null;
     private static ApiService apiService = null; // Cache the ApiService

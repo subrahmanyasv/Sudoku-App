@@ -89,6 +89,12 @@
             style="@style/GameControlButton"
             android:drawableTop="@drawable/ic_lightbulb"
             android:text="Hint" />
+
+        <TextView
+            android:id="@+id/debug_solve_button"
+            style="@style/GameControlButton"
+            android:drawableTop="@drawable/ic_check_circle"
+            android:text="Solve" />
     </LinearLayout>
 
     <!-- *** ADDED DEBUG SOLVE BUTTON *** -->

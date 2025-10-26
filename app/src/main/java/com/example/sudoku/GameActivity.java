@@ -241,8 +241,16 @@ public class GameActivity extends AppCompatActivity {
         if (hintButton != null) {
             hintButton.setOnClickListener(v -> Toast.makeText(this, "Hint (Not Implemented)", Toast.LENGTH_SHORT).show());
         }
+
         if (submitButton != null) {
             submitButton.setOnClickListener(v -> submitPuzzle());
+        }
+
+        if (debugSolveButton != null) {
+            debugSolveButton.setOnClickListener(v -> {
+                sudokuBoardView.fillSolution();
+                stopTimer();
+            });
         }
     }
 
@@ -522,7 +530,7 @@ public class GameActivity extends AppCompatActivity {
         updateRequest.setWasCompleted(completed);
         updateRequest.setDurationSeconds(timeSeconds);
         updateRequest.setErrorsMade(errors);
-        updateRequest.setHintsUsed(0); // Assuming hints not implemented
+        updateRequest.setHintsUsed(this.hintsUsed); // Assuming hints not implemented
         updateRequest.setFinalScore(finalScore);
         updateRequest.setCompletedAt(completedTimestamp);
         updateRequest.setCurrentState(currentBoardState); // Save current state
