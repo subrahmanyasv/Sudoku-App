@@ -10,6 +10,10 @@ import com.example.sudoku.data.model.PuzzleResponse;
 import com.example.sudoku.data.model.RegisterRequest;
 import com.example.sudoku.data.model.UpdateResponse; // Import UpdateResponse
 import com.example.sudoku.data.model.UserResponse;
+import com.example.sudoku.data.model.ChallengeCompleteRequest;
+import com.example.sudoku.data.model.ChallengeCreateRequest;
+import com.example.sudoku.data.model.ChallengeRespondRequest;
+import com.example.sudoku.data.model.ChallengeResponse;
 
 import java.util.List;
 
@@ -47,5 +51,37 @@ public interface ApiService {
 
     @GET("/api/user/game_history")
     Call<List<GameResponse>> getGameHistory(); // Returns a list of completed games
+
+    // --- NEW CHALLENGE ENDPOINTS ---
+
+    /**
+     * Create a new challenge after finishing a game.
+     */
+    @POST("api/challenges/")
+    Call<ChallengeResponse> createChallenge(@Body ChallengeCreateRequest challengeCreateRequest);
+
+    /**
+     * Get all pending challenges for the current user (where user is the opponent).
+     */
+    @GET("api/challenges/")
+    Call<List<ChallengeResponse>> getChallenges();
+
+    /**
+     * Accept or reject a pending challenge.
+     */
+    @POST("api/challenges/{challenge_id}/respond")
+    Call<ChallengeResponse> respondToChallenge(
+            @Path("challenge_id") String challengeId,
+            @Body ChallengeRespondRequest respondRequest
+    );
+
+    /**
+     * Complete an accepted challenge (submits opponent's score).
+     */
+    @POST("api/challenges/{challenge_id}/complete")
+    Call<ChallengeResponse> completeChallenge(
+            @Path("challenge_id") String challengeId,
+            @Body ChallengeCompleteRequest completeRequest
+    );
 }
 
