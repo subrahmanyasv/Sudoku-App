@@ -407,5 +407,46 @@ public class SudokuBoardView extends View {
         return errorCount;
     }
 
+    public int provideHint() {
+        if (selectedRow == -1 || selectedCol == -1) {
+            return 0;
+        }
+
+        if (isStartingCell[selectedRow][selectedCol] || board[selectedRow][selectedCol] != 0) {
+            return -1;
+        }
+
+        if (solutionString == null) {
+            Log.e("SudokuBoardView", "Cannot provide hint, solutionString is null.");
+            return -2;
+        }
+
+        int correctValue = solutionString.charAt(selectedRow * 9 + selectedCol) - '0';
+        board[selectedRow][selectedCol] = correctValue;
+
+        // Deselect the cell after providing the hint to avoid accidental erase
+         selectedRow = -1;
+         selectedCol = -1;
+        invalidate();
+        return 1;
+    }
+
+
+    //Function to automatically fill the game with the solution.
+    //Used only for testing and debugging.
+    public void fillSolution() {
+        if (solutionString == null) {
+            Log.e("SudokuBoardView", "Cannot fill solution, solutionString is null.");
+            Toast.makeText(getContext(), "Error: Solution not available.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        loadCurrentState(solutionString);
+        selectedRow = -1;
+        selectedCol = -1;
+
+        invalidate();
+        Log.d("SudokuBoardView", "Debug: Board filled with solution.");
+    }
+
 }
 

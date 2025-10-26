@@ -45,6 +45,7 @@ public class GameActivity extends AppCompatActivity {
     private Button resumeButton, restartButton, quitButton;
     private TextView undoButton, eraseButton, hintButton;
     private Button submitButton;
+    private TextView debugSolveButton;
 
     private ApiService apiService;
     private PuzzleResponse currentPuzzleData; // Store the puzzle part
@@ -55,6 +56,9 @@ public class GameActivity extends AppCompatActivity {
 
     private boolean isPaused = false;
     private long timeWhenStopped = 0;
+
+    private int hintsUsed = 0;
+    private static final int MAX_HINTS = 3;
 
 
     @Override
@@ -76,6 +80,7 @@ public class GameActivity extends AppCompatActivity {
         eraseButton = findViewById(R.id.erase_button);
         hintButton = findViewById(R.id.hint_button);
         submitButton = findViewById(R.id.submit_button);
+        debugSolveButton = findViewById(R.id.debug_solve_button);
 
 
         // --- Get Game Data ---
@@ -224,11 +229,45 @@ public class GameActivity extends AppCompatActivity {
         }
         if (hintButton != null) {
             hintButton.setOnClickListener(v -> {
-                Toast.makeText(this, "Hint clicked (Not Implemented)", Toast.LENGTH_SHORT).show();
+                // 1. Check if hints are available
+                if (hintsUsed >= MAX_HINTS) {
+                    Toast.makeText(this, "You have used all " + MAX_HINTS + " hints!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // 2. Ask the board to provide a hint
+                // We will create provideHint() in SudokuBoardView
+                int hintResult = sudokuBoardView.provideHint();
+
+                // 3. Handle the result from the board
+                switch (hintResult) {
+                    case 1: // Success
+                        hintsUsed++; // Increment the hint count
+                        int hintsRemaining = MAX_HINTS - hintsUsed;
+                        Toast.makeText(this, "Hint provided! You have " + hintsRemaining + " hints left.", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 0: // No cell selected
+                        Toast.makeText(this, "Please select an empty cell to use a hint.", Toast.LENGTH_SHORT).show();
+                        break;
+                    case -1: // Cell already filled
+                        Toast.makeText(this, "Cannot use a hint on a cell that is already filled.", Toast.LENGTH_SHORT).show();
+                        break;
+                    case -2: // Solution not available (error case)
+                        Toast.makeText(this, "Error: Could not retrieve hint.", Toast.LENGTH_SHORT).show();
+                        break;
+                }
             });
         }
+
         if (submitButton != null) {
             submitButton.setOnClickListener(v -> submitPuzzle());
+        }
+
+        if (debugSolveButton != null) {
+            debugSolveButton.setOnClickListener(v -> {
+                sudokuBoardView.fillSolution();
+                stopTimer();
+            });
         }
     }
 
@@ -381,7 +420,7 @@ public class GameActivity extends AppCompatActivity {
         updateRequest.setWasCompleted(completed);
         updateRequest.setDurationSeconds(timeSeconds); // Save current duration
         updateRequest.setErrorsMade(errors);
-        updateRequest.setHintsUsed(0); // Assuming hints not implemented
+        updateRequest.setHintsUsed(this.hintsUsed); // Assuming hints not implemented
         updateRequest.setFinalScore(finalScore);
         updateRequest.setCompletedAt(completedTimestamp);
 
